@@ -5,8 +5,9 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { useRouter } from "next/navigation";
 import { db, type AsistenciaLocal } from "@/lib/db";
 import { hoyISO } from "@/lib/db/seed";
-import { useTrabajadores } from "@/lib/db/hooks";
+import { useTrabajadores, useTodosTrabajadores } from "@/lib/db/hooks";
 import { registrarAsistencia } from "@/lib/registros";
+import { agregarColaborador, setActivoColaborador } from "@/lib/colaboradores";
 import { comprimirFoto } from "@/lib/media";
 import { fmtCoord } from "@/lib/geo";
 import type { Trabajador } from "@/lib/types";
@@ -26,9 +27,12 @@ export default function ColaboradoresPage() {
     [],
   );
   const [sel, setSel] = useState<Trabajador | null>(null);
+  const [gestionar, setGestionar] = useState(false);
 
   const map = new Map<string, AsistenciaLocal>(hoy.map((a) => [a.trabajador_id, a]));
   const presentes = hoy.filter((a) => a.presente).length;
+
+  if (gestionar) return <Gestionar onCerrar={() => setGestionar(false)} />;
 
   return (
     <div className="flex flex-col gap-4">
@@ -40,6 +44,14 @@ export default function ColaboradoresPage() {
         <p className="text-finca-600 font-semibold">
           {presentes} presente{presentes === 1 ? "" : "s"} hoy
         </p>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <button className="boton-secundario py-3 text-base" onClick={() => router.push("/campo/planilla")}>
+          📋 Planilla
+        </button>
+        <button className="boton-secundario py-3 text-base" onClick={() => setGestionar(true)}>
+          ⚙️ Gestionar base
+        </button>
       </div>
       <p className="text-finca-600 -mt-1">
         Tocá un colaborador y tomale la foto: se guarda la hora y el lugar como prueba de que llegó.
@@ -165,6 +177,80 @@ function HojaRegistro({
           El registro es con foto: guarda hora y ubicación aunque no haya señal. Se envía sola cuando aparezca.
         </p>
       </div>
+    </div>
+  );
+}
+
+// Gestión de la base de colaboradores (alta rotación): agregar, activar/desactivar.
+function Gestionar({ onCerrar }: { onCerrar: () => void }) {
+  const todos = useTodosTrabajadores();
+  const [nombre, setNombre] = useState("");
+  const [tipo, setTipo] = useState<Trabajador["tipo"]>("planilla");
+  const activos = todos.filter((t) => t.activo).length;
+
+  async function agregar() {
+    if (!nombre.trim()) return;
+    await agregarColaborador(nombre, tipo);
+    setNombre("");
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <button onClick={onCerrar} className="text-finca-600 font-bold text-lg self-start">← Colaboradores</button>
+      <div>
+        <h1 className="text-2xl font-extrabold text-finca-900">Base de colaboradores</h1>
+        <p className="text-finca-600 font-semibold">{activos} activo{activos === 1 ? "" : "s"} de {todos.length}</p>
+      </div>
+
+      {/* Alta rápida */}
+      <div className="tarjeta flex flex-col gap-3">
+        <span className="font-bold text-finca-800">Agregar colaborador</span>
+        <input
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          placeholder="Nombre y apellido"
+          className="entrada seleccionable text-left"
+        />
+        <div className="flex gap-2">
+          {(["planilla", "tarea", "mixto"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTipo(t)}
+              className={`flex-1 rounded-lg py-2 font-bold border-2 capitalize text-sm ${
+                tipo === t ? "bg-finca-500 text-white border-finca-500" : "bg-white text-finca-700 border-finca-100"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <button className="boton-primario py-3 text-lg" onClick={() => void agregar()}>
+          + Agregar
+        </button>
+      </div>
+
+      {/* Lista completa con activar/desactivar */}
+      <ul className="flex flex-col gap-2">
+        {todos.map((t) => (
+          <li key={t.id} className="tarjeta flex items-center justify-between py-3">
+            <div>
+              <p className={`font-bold ${t.activo ? "text-finca-900" : "text-finca-400"}`}>{t.nombre}</p>
+              <p className="text-xs text-finca-500 capitalize">{t.tipo}{t.activo ? "" : " · inactivo"}</p>
+            </div>
+            <button
+              onClick={() => void setActivoColaborador(t.id, !t.activo)}
+              className={`rounded-lg px-3 py-2 font-bold border-2 text-sm ${
+                t.activo ? "bg-white text-alerta border-alerta/40" : "bg-listo text-white border-listo"
+              }`}
+            >
+              {t.activo ? "Desactivar" : "Reactivar"}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p className="text-finca-600 text-sm">
+        Desactivá a quien no vuelve; reactivá al que regresa por temporada. Los cambios se sincronizan solos.
+      </p>
     </div>
   );
 }

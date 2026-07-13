@@ -39,7 +39,8 @@ create table if not exists trabajadores (
   id uuid primary key default gen_random_uuid(),
   nombre text not null,
   tipo text check (tipo in ('planilla','tarea','mixto')),
-  activo boolean default true
+  activo boolean default true,
+  sincronizado_en timestamptz
 );
 
 -- REGISTRO CENTRAL: cada evento de campo
@@ -164,7 +165,8 @@ create table if not exists consultas_protocolo (
   id uuid primary key default gen_random_uuid(),
   protocolo_id uuid references protocolos(id),
   consultado_en timestamptz default now(),
-  usuario text
+  usuario text,
+  sincronizado_en timestamptz
 );
 
 -- Plan del día (lo genera el sistema, lo consume Emerson offline)

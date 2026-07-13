@@ -22,6 +22,10 @@ export function useTrabajadores() {
     [],
   );
 }
+/** Todos los colaboradores (activos e inactivos) para gestionar la base. */
+export function useTodosTrabajadores() {
+  return useLiveQuery(() => db().trabajadores.orderBy("nombre").toArray(), [], []);
+}
 export function useProtocolos() {
   return useLiveQuery(() => db().protocolos.orderBy("orden").toArray(), [], []);
 }

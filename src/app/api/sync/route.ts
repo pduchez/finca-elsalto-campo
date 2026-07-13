@@ -80,6 +80,16 @@ function aFila(tipo: string, item: any): { tabla: string; fila: any } {
           usuario: item.usuario ?? "emerson",
         },
       };
+    case "trabajadores":
+      return {
+        tabla: "trabajadores",
+        fila: {
+          id: item.id,
+          nombre: item.nombre,
+          tipo: item.tipo ?? "planilla",
+          activo: item.activo ?? true,
+        },
+      };
     case "area_detalle":
       // Ficha del área: linderos + tamaño + topografía + siembra (upsert por area_id).
       return {

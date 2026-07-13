@@ -125,6 +125,17 @@ export interface AreaDetalleLocal extends AreaDetalle {
   sincronizado_en?: number | null;
 }
 
+/**
+ * Colaborador editable por Emerson (alta rotación: nuevos, de temporada, que
+ * no vuelven o vuelven eventualmente). Los creados/editados en campo se
+ * sincronizan; los sembrados no llevan estadoSync.
+ */
+export interface TrabajadorLocal extends Trabajador {
+  estadoSync?: EstadoSync;
+  intentos?: number;
+  sincronizado_en?: number | null;
+}
+
 class FincaDB extends Dexie {
   registros!: Table<RegistroLocal, string>;
   asistencia!: Table<AsistenciaLocal, string>;
@@ -136,7 +147,7 @@ class FincaDB extends Dexie {
   // Catálogos cacheados (para funcionar sin señal)
   areas!: Table<Area, string>;
   actividades!: Table<Actividad, string>;
-  trabajadores!: Table<Trabajador, string>;
+  trabajadores!: Table<TrabajadorLocal, string>;
   insumos!: Table<Insumo, string>;
 
   constructor() {
@@ -158,6 +169,10 @@ class FincaDB extends Dexie {
     this.version(2).stores({
       area_detalle: "area_id, estadoSync",
     });
+    // v3: colaboradores editables/sincronizables (índice por estadoSync).
+    this.version(3).stores({
+      trabajadores: "id, nombre, estadoSync",
+    });
   }
 }
 
@@ -178,5 +193,6 @@ export const TABLAS_SYNC = [
   "tareas_destajo",
   "consultas_protocolo",
   "area_detalle",
+  "trabajadores",
 ] as const;
 export type TablaSync = (typeof TABLAS_SYNC)[number];
