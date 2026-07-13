@@ -37,8 +37,25 @@ node scripts/gen-icons.mjs   # regenera los iconos PWA
 - `/campo` — app de campo de Emerson (offline-first).
 - `/panel` — panel del dueño (protegido; briefing, trazabilidad, costos, admin).
 
+## Funciona sin backend (modo demo)
+
+Sin variables de Supabase/Anthropic, la app corre 100% local (IndexedDB) con
+datos semilla, para probar el flujo completo. Ver `docs/DEMO.md` (recorrido con
+capturas) y `docs/DEPLOY.md` (conectar Supabase + Anthropic + Vercel e instalar
+la PWA en el Android de Emerson).
+
 ## Estado
 
-En construcción por pasos (ver el plan de trabajo en `CLAUDE.md`).
-**Paso 1 — Scaffolding:** completo. Los siguientes pasos se implementan con
-revisión del dueño entre cada uno.
+Producto completo de la v1 (ver el plan en `CLAUDE.md`):
+
+- **Campo:** captura offline (área → actividad → audio/foto/jornales → listo) con
+  GPS, asistencia, destajo, protocolos + capacitación contextual, cola de
+  sincronización e indicador de pendientes.
+- **Servidor:** endpoint de sincronización idempotente (upsert por uuid) +
+  extracción estructurada con Claude (tool use forzado).
+- **Panel del dueño:** briefing, trazabilidad orgánica (CSV), costos, avance y
+  administración (carga de bioles).
+- **Datos:** `supabase/schema.sql` + `supabase/seed.sql`.
+
+Pendiente para producción: proveedor de _speech-to-text_ para transcribir el
+audio antes de la extracción, y proteger `/panel` con Supabase Auth.

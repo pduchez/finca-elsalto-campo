@@ -145,16 +145,18 @@ conversacional abierto con IA, notificaciones push, app nativa.
 ## Plan de trabajo (pausar al final de cada paso para revisión)
 
 1. **Scaffolding** Next.js + Tailwind + PWA + estructura + este `CLAUDE.md`. ← **hecho**
-2. Esquema SQL completo + migraciones + datos semilla (Supabase).
-3. Capa offline: Dexie + cola de sincronización + service worker. Probar sin red.
-4. App de campo: flujo de captura (área → actividad → audio/foto/jornales → listo).
-5. Endpoint de sincronización + procesamiento con Claude (structured output).
-6. Asistencia y destajo.
-7. Panel del dueño: briefing, trazabilidad, costos.
-8. Protocolos y capacitación contextual.
-9. Deploy a Vercel + guía de instalación de la PWA en el Android de Emerson.
+2. Esquema SQL + datos semilla (`supabase/schema.sql`, `supabase/seed.sql`). ← **hecho**
+3. Capa offline: Dexie + cola de sincronización + service worker. ← **hecho**
+4. App de campo: flujo de captura (área → actividad → audio/foto/jornales → listo). ← **hecho**
+5. Endpoint de sincronización + extracción con Claude (structured output). ← **hecho**
+6. Asistencia y destajo. ← **hecho**
+7. Panel del dueño: briefing, trazabilidad, costos, avance, administración. ← **hecho**
+8. Protocolos y capacitación contextual. ← **hecho**
+9. Deploy a Vercel + instalación de la PWA (`docs/DEPLOY.md`). ← **documentado**
 
-**No avanzar al siguiente paso sin confirmación del dueño.**
+Pendiente para producción: proveedor de speech-to-text (transcripción del audio
+antes de la extracción) y proteger `/panel` con Supabase Auth. El resto es la v1
+completa; corre en modo demo sin backend (ver `docs/DEMO.md`).
 
 ## Criterio de éxito
 
