@@ -53,6 +53,68 @@ export function useConteoPendientes(): number {
   return n ?? 0;
 }
 
+/** Ficha de un área (linderos, tamaño, topografía, siembra). */
+export function useAreaDetalle(areaId: string) {
+  return useLiveQuery(() => db().area_detalle.get(areaId), [areaId], undefined);
+}
+
+export interface ConsolidadoArea {
+  totalRegistros: number;
+  ultimaActividad: { nombre: string; fecha: string } | null;
+  diasSinActividad: number | null;
+  jornalesAcumulados: number;
+  quintalesCortados: number;
+  ultimasAplicaciones: { actividad: string; cantidad: number | null; unidad: string | null; fecha: string }[];
+  problemasAbiertos: { descripcion: string; fecha: string }[];
+}
+
+/** Consolida lo que Emerson reportó a diario para un área. */
+export function useConsolidadoArea(areaId: string): ConsolidadoArea | undefined {
+  return useLiveQuery(
+    async () => {
+      const regs = await db().registros.where("area_id").equals(areaId).toArray();
+      regs.sort((a, b) => b.creado_en - a.creado_en);
+      const ultimo = regs[0];
+      const dias = ultimo
+        ? Math.floor((Date.now() - ultimo.creado_en) / 86400000)
+        : null;
+      const jornales = regs.reduce((s, r) => s + (r.jornales_usados ?? 0), 0);
+      const quintales = regs
+        .filter((r) => r.actividad_codigo === "corte")
+        .reduce((s, r) => s + (r.cantidad ?? 0), 0);
+      const aplic = regs
+        .filter((r) => ["bocashi", "bioles"].includes(r.actividad_codigo ?? ""))
+        .slice(0, 5)
+        .map((r) => ({
+          actividad: r.actividad_nombre ?? "",
+          cantidad: r.cantidad ?? null,
+          unidad: r.unidad ?? null,
+          fecha: r.fecha,
+        }));
+      const problemas = regs
+        .filter((r) => r.problema_detectado)
+        .slice(0, 5)
+        .map((r) => ({
+          descripcion: r.descripcion_problema ?? r.observaciones ?? "Problema reportado",
+          fecha: r.fecha,
+        }));
+      return {
+        totalRegistros: regs.length,
+        ultimaActividad: ultimo
+          ? { nombre: ultimo.actividad_nombre ?? "", fecha: ultimo.fecha }
+          : null,
+        diasSinActividad: dias,
+        jornalesAcumulados: jornales,
+        quintalesCortados: quintales,
+        ultimasAplicaciones: aplic,
+        problemasAbiertos: problemas,
+      };
+    },
+    [areaId],
+    undefined,
+  );
+}
+
 /** Registros de hoy (para confirmar al usuario lo que lleva registrado). */
 export function useRegistrosHoy() {
   return useLiveQuery(

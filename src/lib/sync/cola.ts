@@ -39,6 +39,10 @@ function aPayload(tabla: TablaSync, item: any) {
       num_fotos: Array.isArray(fotos) ? fotos.length : 0,
     };
   }
+  if (tabla === "area_detalle") {
+    // La ficha del área se identifica por area_id; el servidor upserta por ahí.
+    return { ...item, id: item.area_id };
+  }
   return item;
 }
 
@@ -64,7 +68,10 @@ export async function sincronizar(): Promise<{ enviados: number; pendientes: num
         .where("estadoSync")
         .anyOf("pendiente", "error")
         .toArray();
+      // La clave primaria varía por tabla (registros usa `id`, area_detalle `area_id`).
+      const pk = String(base.table(tabla).schema.primKey.keyPath);
       for (const item of pendientes) {
+        const clave = (item as Record<string, unknown>)[pk] as string;
         // Respeta el backoff: si falló hace poco, esperamos.
         if (
           item.estadoSync === "error" &&
@@ -81,14 +88,14 @@ export async function sincronizar(): Promise<{ enviados: number; pendientes: num
             body: JSON.stringify({ tipo: tabla, item: aPayload(tabla, item) }),
           });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          await base.table(tabla).update(item.id, {
+          await base.table(tabla).update(clave, {
             estadoSync: "sincronizado",
             sincronizado_en: Date.now(),
           });
           enviados++;
         } catch {
           // Nunca se propaga al usuario: se reintenta luego.
-          await base.table(tabla).update(item.id, {
+          await base.table(tabla).update(clave, {
             estadoSync: "error",
             intentos: (item.intentos ?? 0) + 1,
             ultimo_intento_en: Date.now(),

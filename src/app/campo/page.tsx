@@ -49,6 +49,9 @@ export default function CampoHome() {
       </BotonGrande>
 
       <div className="grid grid-cols-1 gap-4">
+        <BotonGrande href="/campo/areas" variante="secundario">
+          🗺️ Áreas
+        </BotonGrande>
         <BotonGrande href="/campo/asistencia" variante="secundario">
           👷 Asistencia
         </BotonGrande>

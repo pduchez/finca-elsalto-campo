@@ -59,4 +59,9 @@ body {
   .tarjeta {
     @apply rounded-2xl bg-white p-5 shadow-sm border border-finca-100;
   }
+
+  .entrada {
+    @apply w-full text-lg font-bold bg-crema rounded-xl p-3 text-center
+           border-2 border-finca-100 text-finca-900;
+  }
 }

@@ -74,6 +74,27 @@ create index if not exists idx_registros_fecha on registros(fecha);
 create index if not exists idx_registros_area on registros(area_id);
 create index if not exists idx_registros_revision on registros(requiere_revision) where requiere_revision;
 
+-- Ficha del área: linderos GPS, tamaño calculado, topografía y siembra.
+-- La carga Emerson desde el campo (una fila por área).
+create table if not exists areas_detalle (
+  area_id uuid primary key references areas(id) on delete cascade,
+  vertices jsonb default '[]',            -- [{orden,latitud,longitud,altitud,precision_gps,tipo,capturado_en}]
+  area_m2 numeric,
+  area_manzanas numeric,
+  area_hectareas numeric,
+  perimetro_m numeric,
+  centro_lat numeric, centro_lon numeric,
+  topografia jsonb,                       -- {clasificacion, alt_min, alt_max}
+  manzanas_sembradas numeric,
+  variedad text,
+  anio_siembra int,
+  densidad_matas_mz numeric,
+  matas_estimadas numeric,
+  notas text,
+  actualizado_en timestamptz,
+  sincronizado_en timestamptz
+);
+
 -- Consumo de insumos por registro
 create table if not exists consumos (
   id uuid primary key default gen_random_uuid(),
@@ -167,6 +188,7 @@ alter table asistencia       enable row level security;
 alter table tareas_destajo   enable row level security;
 alter table consultas_protocolo enable row level security;
 alter table vivero_registros enable row level security;
+alter table areas_detalle    enable row level security;
 
 do $$
 begin
@@ -180,6 +202,10 @@ begin
   end if;
   if not exists (select 1 from pg_policies where policyname = 'lectura_autenticada_destajo') then
     create policy lectura_autenticada_destajo on tareas_destajo
+      for select to authenticated using (true);
+  end if;
+  if not exists (select 1 from pg_policies where policyname = 'lectura_autenticada_areas_detalle') then
+    create policy lectura_autenticada_areas_detalle on areas_detalle
       for select to authenticated using (true);
   end if;
 end $$;

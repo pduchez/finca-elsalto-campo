@@ -8,7 +8,9 @@ import type {
   Insumo,
   EstadoSync,
   Gps,
+  AreaDetalle,
 } from "@/lib/types";
+export type { AreaDetalle };
 
 /**
  * Base local (IndexedDB vía Dexie). Es la fuente de verdad en el campo:
@@ -107,6 +109,13 @@ export interface ConsultaProtocoloLocal {
   sincronizado_en?: number | null;
 }
 
+// Ficha del área (linderos, tamaño, topografía, siembra). Ver AreaDetalle.
+export interface AreaDetalleLocal extends AreaDetalle {
+  estadoSync: EstadoSync;
+  intentos: number;
+  sincronizado_en?: number | null;
+}
+
 class FincaDB extends Dexie {
   registros!: Table<RegistroLocal, string>;
   asistencia!: Table<AsistenciaLocal, string>;
@@ -114,6 +123,7 @@ class FincaDB extends Dexie {
   plan_dia!: Table<PlanDiaLocal, string>;
   protocolos!: Table<ProtocoloLocal, string>;
   consultas_protocolo!: Table<ConsultaProtocoloLocal, string>;
+  area_detalle!: Table<AreaDetalleLocal, string>;
   // Catálogos cacheados (para funcionar sin señal)
   areas!: Table<Area, string>;
   actividades!: Table<Actividad, string>;
@@ -135,6 +145,10 @@ class FincaDB extends Dexie {
       trabajadores: "id, nombre",
       insumos: "id, nombre, tipo",
     });
+    // v2: ficha del área (linderos GPS, tamaño, topografía, siembra).
+    this.version(2).stores({
+      area_detalle: "area_id, estadoSync",
+    });
   }
 }
 
@@ -154,5 +168,6 @@ export const TABLAS_SYNC = [
   "asistencia",
   "tareas_destajo",
   "consultas_protocolo",
+  "area_detalle",
 ] as const;
 export type TablaSync = (typeof TABLAS_SYNC)[number];

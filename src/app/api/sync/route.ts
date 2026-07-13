@@ -75,6 +75,29 @@ function aFila(tipo: string, item: any): { tabla: string; fila: any } {
           usuario: item.usuario ?? "emerson",
         },
       };
+    case "area_detalle":
+      // Ficha del área: linderos + tamaño + topografía + siembra (upsert por area_id).
+      return {
+        tabla: "areas_detalle",
+        fila: {
+          area_id: item.area_id,
+          vertices: item.vertices ?? [],
+          area_m2: item.area_m2,
+          area_manzanas: item.area_manzanas,
+          area_hectareas: item.area_hectareas,
+          perimetro_m: item.perimetro_m,
+          centro_lat: item.centro_lat,
+          centro_lon: item.centro_lon,
+          topografia: item.topografia ?? null,
+          manzanas_sembradas: item.manzanas_sembradas,
+          variedad: item.variedad,
+          anio_siembra: item.anio_siembra,
+          densidad_matas_mz: item.densidad_matas_mz,
+          matas_estimadas: item.matas_estimadas,
+          notas: item.notas,
+          actualizado_en: new Date().toISOString(),
+        },
+      };
     default:
       throw new Error(`tipo desconocido: ${tipo}`);
   }
@@ -140,7 +163,8 @@ export async function POST(req: Request) {
       Object.assign(fila, { sincronizado_en: new Date().toISOString() });
     }
 
-    const { error } = await supa.from(tabla).upsert(fila, { onConflict: "id" });
+    const onConflict = tabla === "areas_detalle" ? "area_id" : "id";
+    const { error } = await supa.from(tabla).upsert(fila, { onConflict });
     if (error) throw error;
     return NextResponse.json({ ok: true, id: item.id });
   } catch (e: any) {

@@ -86,6 +86,50 @@ export interface ExtraccionClaude {
   confianza: number; // 0-1
 }
 
+/** Un vértice del lindero del área, capturado con GPS caminando el terreno. */
+export interface Vertice {
+  orden: number;
+  latitud: number;
+  longitud: number;
+  altitud: number | null; // metros s.n.m. (referencia; el GPS de celular es impreciso en altura)
+  precision_gps: number | null;
+  tipo: "esquina" | "quiebre";
+  capturado_en: number; // epoch ms
+}
+
+export type ClasificacionTopografia = "plano" | "ladera" | "quebrado" | "mixto";
+
+export interface Topografia {
+  clasificacion: ClasificacionTopografia | null;
+  alt_min: number | null;
+  alt_max: number | null;
+}
+
+/**
+ * Ficha de un área: linderos GPS, tamaño calculado, topografía y datos de
+ * siembra. Emerson la va llenando en campo; se sincroniza como el resto.
+ */
+export interface AreaDetalle {
+  area_id: Uuid;
+  vertices: Vertice[];
+  // Calculados a partir del polígono
+  area_m2: number | null;
+  area_manzanas: number | null;
+  area_hectareas: number | null;
+  perimetro_m: number | null;
+  centro_lat: number | null;
+  centro_lon: number | null;
+  topografia: Topografia;
+  // Datos de siembra
+  manzanas_sembradas: number | null;
+  variedad: string | null;
+  anio_siembra: number | null; // para calcular la edad
+  densidad_matas_mz: number | null;
+  matas_estimadas: number | null;
+  notas: string | null;
+  actualizado_en: number;
+}
+
 /** Registro central de un evento de campo (tabla `registros`). */
 export interface Registro extends Gps {
   id: Uuid; // uuid del cliente (idempotencia)

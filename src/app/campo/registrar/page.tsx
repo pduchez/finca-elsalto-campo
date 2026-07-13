@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAreas, useActividades, useProtocolos } from "@/lib/db/hooks";
 import { guardarRegistro, registrarConsultaProtocolo } from "@/lib/registros";
@@ -27,6 +27,24 @@ export default function RegistrarFlujo() {
   const [jornales, setJornales] = useState(0);
   const [guardando, setGuardando] = useState(false);
   const [verProtocolo, setVerProtocolo] = useState<ProtocoloLocal | null>(null);
+
+  // Si venimos de la ficha de un área (?area=<id>), la preseleccionamos y
+  // saltamos directo a elegir la actividad.
+  const preseleccionHecha = useRef(false);
+  useEffect(() => {
+    if (preseleccionHecha.current || areas.length === 0) return;
+    const id = new URLSearchParams(window.location.search).get("area");
+    if (!id) {
+      preseleccionHecha.current = true;
+      return;
+    }
+    const a = areas.find((x) => x.id === id);
+    if (a) {
+      setArea(a);
+      setPaso("actividad");
+    }
+    preseleccionHecha.current = true;
+  }, [areas]);
 
   // Protocolo contextual: se dispara por la actividad seleccionada.
   const protocoloContextual = useMemo(
