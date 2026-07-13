@@ -13,3 +13,6 @@ public/workbox-*.js
 public/sw.js.map
 public/workbox-*.js.map
 coverage/
+*.tsbuildinfo
+public/swe-worker-*.js
+public/fallback-*.js

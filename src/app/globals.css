@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-crema text-finca-900 antialiased;
+  /* Evita el resaltado azul al tocar en Android */
+  -webkit-tap-highlight-color: transparent;
+  /* Sin selección accidental de texto con manos sucias / guantes */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Permitir selección donde de verdad haga falta (transcripciones, notas) */
+.seleccionable {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@layer components {
+  /* Touch targets grandes. Regla: mínimo 4 toques + 1 audio por registro. */
+  .toque-grande {
+    @apply min-h-[4.5rem] w-full rounded-2xl px-6 text-xl font-bold
+           flex items-center justify-center gap-3 active:scale-[0.98]
+           transition-transform select-none;
+  }
+
+  .boton-primario {
+    @apply toque-grande bg-finca-500 text-white shadow-lg
+           active:bg-finca-600;
+  }
+
+  .boton-secundario {
+    @apply toque-grande bg-white text-finca-700 border-4 border-finca-500;
+  }
+
+  .boton-listo {
+    @apply toque-grande bg-listo text-white shadow-lg text-2xl;
+  }
+
+  .boton-alerta {
+    @apply toque-grande bg-alerta text-white;
+  }
+
+  /* Cuadrícula de botones de área / actividad */
+  .rejilla-botones {
+    @apply grid grid-cols-2 gap-4;
+  }
+
+  .tarjeta {
+    @apply rounded-2xl bg-white p-5 shadow-sm border border-finca-100;
+  }
+}

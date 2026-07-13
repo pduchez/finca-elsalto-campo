@@ -1,0 +1,32 @@
+{
+  "name": "Finca El Salto — Campo",
+  "short_name": "El Salto",
+  "description": "Registro de campo de la finca de cardamomo orgánico El Salto. Funciona sin señal.",
+  "lang": "es-SV",
+  "start_url": "/campo",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f5ee",
+  "theme_color": "#1b4d1e",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
