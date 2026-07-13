@@ -54,7 +54,15 @@ export interface AsistenciaLocal {
   trabajador_id: string;
   trabajador_nombre?: string;
   area_id: string | null;
+  area_nombre?: string | null;
   presente: boolean;
+  // Check-in verificado: foto + ubicación + hora (para planillas fidedignas)
+  hora: number | null; // epoch ms de la marca / foto
+  latitud: number | null;
+  longitud: number | null;
+  precision_gps: number | null;
+  foto?: Blob | null; // evidencia local; se sube aparte al sincronizar
+  evidencia_foto: boolean; // true si se registró con foto geoposicionada
   registrado_por: string;
   estadoSync: EstadoSync;
   intentos: number;

@@ -52,8 +52,8 @@ export default function CampoHome() {
         <BotonGrande href="/campo/areas" variante="secundario">
           🗺️ Áreas
         </BotonGrande>
-        <BotonGrande href="/campo/asistencia" variante="secundario">
-          👷 Asistencia
+        <BotonGrande href="/campo/colaboradores" variante="secundario">
+          🧑‍🌾 Colaboradores
         </BotonGrande>
         <BotonGrande href="/campo/destajo" variante="secundario">
           💵 Tarea por destajo

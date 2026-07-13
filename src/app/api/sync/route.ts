@@ -49,6 +49,11 @@ function aFila(tipo: string, item: any): { tabla: string; fila: any } {
           trabajador_id: item.trabajador_id,
           area_id: item.area_id,
           presente: item.presente,
+          hora: item.hora ? new Date(item.hora).toISOString() : null,
+          latitud: item.latitud,
+          longitud: item.longitud,
+          precision_gps: item.precision_gps,
+          evidencia_foto: !!item.evidencia_foto,
           registrado_por: item.registrado_por ?? "emerson",
         },
       };

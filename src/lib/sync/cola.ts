@@ -39,6 +39,11 @@ function aPayload(tabla: TablaSync, item: any) {
       num_fotos: Array.isArray(fotos) ? fotos.length : 0,
     };
   }
+  if (tabla === "asistencia") {
+    // La foto de asistencia es Blob local: se envía el conteo, no el archivo.
+    const { foto, ...resto } = item;
+    return { ...resto, tiene_foto: !!foto };
+  }
   if (tabla === "area_detalle") {
     // La ficha del área se identifica por area_id; el servidor upserta por ahí.
     // Las fotos van como Blob local: se envía solo el conteo (se suben aparte).

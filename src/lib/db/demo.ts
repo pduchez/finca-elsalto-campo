@@ -155,7 +155,13 @@ export async function cargarDatosEjemplo(): Promise<void> {
     trabajador_id: t.id,
     trabajador_nombre: t.nombre,
     area_id: areaId("La Vitrina").id,
+    area_nombre: "La Vitrina",
     presente: i !== 3, // uno ausente
+    hora: i !== 3 ? Date.now() - (6 * 3600_000 - i * 120_000) : null,
+    latitud: i !== 3 ? GPS_BASE.lat + 0.002 : null,
+    longitud: i !== 3 ? GPS_BASE.lon - 0.001 : null,
+    precision_gps: i !== 3 ? 6 : null,
+    evidencia_foto: i !== 3,
     registrado_por: "emerson",
     estadoSync: "sincronizado",
     intentos: 0,

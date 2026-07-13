@@ -113,6 +113,11 @@ create table if not exists asistencia (
   trabajador_id uuid references trabajadores(id),
   area_id uuid references areas(id),
   presente boolean not null,
+  -- Check-in verificado: foto geoposicionada + hora (planillas fidedignas)
+  hora timestamptz,                        -- fecha y hora de la marca/foto
+  latitud numeric, longitud numeric, precision_gps numeric,
+  evidencia_foto boolean default false,
+  foto_url text,                           -- archivo en Storage (se sube aparte)
   registrado_por text,
   sincronizado_en timestamptz,
   unique (fecha, trabajador_id)

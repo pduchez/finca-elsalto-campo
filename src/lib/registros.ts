@@ -44,11 +44,19 @@ export async function guardarRegistro(n: NuevoRegistro): Promise<string> {
   return reg.id;
 }
 
-/** Marca la asistencia de un trabajador para hoy (upsert por fecha+trabajador). */
-export async function marcarAsistencia(
+/**
+ * Registra la asistencia de un colaborador para hoy con evidencia:
+ * foto + ubicación GPS + fecha y hora. Upsert por (fecha+trabajador).
+ * Así sabemos qué día, dónde y a qué hora se presentó — dato fidedigno para
+ * las planillas catorcenales.
+ */
+export async function registrarAsistencia(
   trabajador: { id: string; nombre: string },
-  presente: boolean,
-  areaId: string | null = null,
+  opts: {
+    presente: boolean;
+    foto?: Blob | null;
+    area?: { id: string; nombre: string } | null;
+  },
 ): Promise<void> {
   const fecha = hoyISO();
   const base = db();
@@ -56,13 +64,19 @@ export async function marcarAsistencia(
     .where("[fecha+trabajador_id]")
     .equals([fecha, trabajador.id])
     .first();
+  const gps = opts.foto ? await capturarGps() : { latitud: null, longitud: null, precision_gps: null };
   const fila: AsistenciaLocal = {
     id: existente?.id ?? uuidv4(),
     fecha,
     trabajador_id: trabajador.id,
     trabajador_nombre: trabajador.nombre,
-    area_id: areaId,
-    presente,
+    area_id: opts.area?.id ?? existente?.area_id ?? null,
+    area_nombre: opts.area?.nombre ?? existente?.area_nombre ?? null,
+    presente: opts.presente,
+    hora: opts.presente ? Date.now() : null,
+    ...gps,
+    foto: opts.foto ?? null,
+    evidencia_foto: !!opts.foto,
     registrado_por: USUARIO,
     estadoSync: "pendiente",
     intentos: 0,
