@@ -2,16 +2,17 @@
 
 import type { Planilla } from "@/lib/planilla";
 
-const CAB = ["Colaborador", "Días trabajados", "Sábado de pago", "Total días", "Total a pagar"];
+const CAB = ["Colaborador", "Días trabajados (de 12)", "Total a pagar"];
 
 function aoa(pl: Planilla): (string | number)[][] {
   return [
     ["Finca El Salto — Planilla catorcenal"],
-    [`Del ${pl.inicio} al ${pl.fin}`, "", "", "Jornal:", pl.jornal],
+    [`Del ${pl.inicio} al ${pl.fin}`, "", "Catorcena (12 días):", pl.completa],
+    ["", "", "Día:", Math.round(pl.jornalDia * 100) / 100],
     [],
     CAB,
-    ...pl.filas.map((f) => [f.nombre, f.diasTrabajados, f.sabadoPago, f.totalDias, f.totalPago]),
-    ["TOTALES", "", "", pl.totalDias, pl.totalPago],
+    ...pl.filas.map((f) => [f.nombre, f.diasTrabajados, f.totalPago]),
+    ["TOTALES", pl.totalDias, pl.totalPago],
   ];
 }
 
@@ -32,7 +33,7 @@ function descargar(blob: Blob, archivo: string) {
 export async function exportarPlanillaExcel(pl: Planilla): Promise<void> {
   const XLSX = await import("xlsx");
   const ws = XLSX.utils.aoa_to_sheet(aoa(pl));
-  ws["!cols"] = [{ wch: 24 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 14 }];
+  ws["!cols"] = [{ wch: 26 }, { wch: 20 }, { wch: 14 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Catorcena");
   XLSX.writeFile(wb, nombre(pl, "xlsx"));
