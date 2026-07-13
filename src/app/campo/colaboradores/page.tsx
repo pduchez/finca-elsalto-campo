@@ -115,13 +115,6 @@ function HojaRegistro({
     onCerrar();
   }
 
-  async function sinFoto() {
-    setGuardando(true);
-    await registrarAsistencia({ id: trabajador.id, nombre: trabajador.nombre }, { presente: true });
-    setGuardando(false);
-    onCerrar();
-  }
-
   async function ausente() {
     setGuardando(true);
     await registrarAsistencia({ id: trabajador.id, nombre: trabajador.nombre }, { presente: false });
@@ -164,15 +157,12 @@ function HojaRegistro({
           >
             {guardando ? "Guardando…" : "📷 TOMAR FOTO"}
           </button>
-          <button className="boton-secundario disabled:opacity-50" disabled={guardando} onClick={() => void sinFoto()}>
-            Marcar presente sin foto
-          </button>
           <button className="text-alerta font-bold py-2 disabled:opacity-50" disabled={guardando} onClick={() => void ausente()}>
             Marcar ausente
           </button>
         </div>
         <p className="text-center text-finca-500 text-sm mt-3">
-          La foto guarda hora y ubicación automáticamente.
+          El registro es con foto: guarda hora y ubicación aunque no haya señal. Se envía sola cuando aparezca.
         </p>
       </div>
     </div>
