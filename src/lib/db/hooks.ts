@@ -115,6 +115,18 @@ export function useConsolidadoArea(areaId: string): ConsolidadoArea | undefined 
   );
 }
 
+/** Historial completo de registros de un área (más reciente primero). */
+export function useRegistrosArea(areaId: string) {
+  return useLiveQuery(
+    async () => {
+      const regs = await db().registros.where("area_id").equals(areaId).toArray();
+      return regs.sort((a, b) => b.creado_en - a.creado_en);
+    },
+    [areaId],
+    [],
+  );
+}
+
 /** Registros de hoy (para confirmar al usuario lo que lleva registrado). */
 export function useRegistrosHoy() {
   return useLiveQuery(

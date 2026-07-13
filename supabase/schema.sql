@@ -90,6 +90,8 @@ create table if not exists areas_detalle (
   anio_siembra int,
   densidad_matas_mz numeric,
   matas_estimadas numeric,
+  meta_produccion_qq numeric,             -- meta de quintales para el área
+  num_fotos int default 0,                -- fotos de referencia (los archivos van a Storage)
   notas text,
   actualizado_en timestamptz,
   sincronizado_en timestamptz

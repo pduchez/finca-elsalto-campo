@@ -111,6 +111,7 @@ export interface ConsultaProtocoloLocal {
 
 // Ficha del área (linderos, tamaño, topografía, siembra). Ver AreaDetalle.
 export interface AreaDetalleLocal extends AreaDetalle {
+  fotos?: Blob[]; // fotos de referencia del área (locales; se suben aparte)
   estadoSync: EstadoSync;
   intentos: number;
   sincronizado_en?: number | null;

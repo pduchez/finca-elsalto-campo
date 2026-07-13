@@ -103,6 +103,7 @@ export interface Topografia {
   clasificacion: ClasificacionTopografia | null;
   alt_min: number | null;
   alt_max: number | null;
+  pendiente_pct: number | null; // pendiente estimada desde la altitud GPS (referencia)
 }
 
 /**
@@ -126,6 +127,7 @@ export interface AreaDetalle {
   anio_siembra: number | null; // para calcular la edad
   densidad_matas_mz: number | null;
   matas_estimadas: number | null;
+  meta_produccion_qq: number | null; // meta de quintales para el área
   notas: string | null;
   actualizado_en: number;
 }

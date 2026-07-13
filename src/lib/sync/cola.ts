@@ -41,7 +41,9 @@ function aPayload(tabla: TablaSync, item: any) {
   }
   if (tabla === "area_detalle") {
     // La ficha del área se identifica por area_id; el servidor upserta por ahí.
-    return { ...item, id: item.area_id };
+    // Las fotos van como Blob local: se envía solo el conteo (se suben aparte).
+    const { fotos, ...resto } = item;
+    return { ...resto, id: item.area_id, num_fotos: Array.isArray(fotos) ? fotos.length : 0 };
   }
   return item;
 }

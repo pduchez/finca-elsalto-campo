@@ -62,6 +62,25 @@ export function rangoAltitud(vertices: Vertice[]): { min: number | null; max: nu
   return { min: Math.min(...alts), max: Math.max(...alts) };
 }
 
+/**
+ * Pendiente estimada (%) a partir de la altitud GPS de los vértices.
+ * pendiente = desnivel / recorrido horizontal más largo × 100.
+ * OJO: el GPS de celular es impreciso en altura; es solo una referencia.
+ */
+export function pendienteEstimada(vertices: Vertice[]): number | null {
+  const conAlt = vertices.filter((v) => v.altitud != null);
+  if (conAlt.length < 2) return null;
+  const alts = conAlt.map((v) => v.altitud as number);
+  const desnivel = Math.max(...alts) - Math.min(...alts);
+  const m = aMetros(conAlt);
+  let run = 0;
+  for (let i = 0; i < m.length; i++)
+    for (let j = i + 1; j < m.length; j++)
+      run = Math.max(run, Math.hypot(m[i].x - m[j].x, m[i].y - m[j].y));
+  if (run < 1) return null;
+  return (desnivel / run) * 100;
+}
+
 /** Edad de las plantas en años a partir del año de siembra. */
 export function edadPlantas(anioSiembra: number | null, anioActual: number): number | null {
   if (!anioSiembra) return null;

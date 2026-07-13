@@ -94,6 +94,8 @@ function aFila(tipo: string, item: any): { tabla: string; fila: any } {
           anio_siembra: item.anio_siembra,
           densidad_matas_mz: item.densidad_matas_mz,
           matas_estimadas: item.matas_estimadas,
+          meta_produccion_qq: item.meta_produccion_qq,
+          num_fotos: item.num_fotos ?? 0,
           notas: item.notas,
           actualizado_en: new Date().toISOString(),
         },
