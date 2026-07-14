@@ -53,6 +53,77 @@ function aPayload(tabla: TablaSync, item: any) {
   return item;
 }
 
+/**
+ * Sube a Storage el audio/fotos de las filas YA sincronizadas (los datos van
+ * primero; los archivos después). Es idempotente en el servidor. Marca
+ * `archivosSubidos` local solo tras confirmación, y nunca borra los Blob.
+ */
+async function subirUno(
+  tabla: "registros" | "asistencia" | "area_detalle",
+  id: string,
+  opts: { audio?: Blob | null; fotos: Blob[] },
+): Promise<boolean> {
+  const fd = new FormData();
+  fd.set("tabla", tabla === "area_detalle" ? "areas_detalle" : tabla);
+  fd.set("id", id);
+  if (opts.audio) fd.set("audio", opts.audio, "audio");
+  for (const f of opts.fotos) fd.append("foto", f, "foto");
+  try {
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function subirArchivos(): Promise<number> {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return 0;
+  const base = db();
+  let subidos = 0;
+
+  const regs = await base.registros.where("estadoSync").equals("sincronizado").toArray();
+  for (const r of regs) {
+    if (r.archivosSubidos) continue;
+    const fotos = Array.isArray(r.fotos) ? r.fotos : [];
+    if (!r.audioBlob && fotos.length === 0) {
+      await base.registros.update(r.id, { archivosSubidos: true });
+      continue;
+    }
+    if (await subirUno("registros", r.id, { audio: r.audioBlob, fotos })) {
+      await base.registros.update(r.id, { archivosSubidos: true });
+      subidos++;
+    }
+  }
+
+  const asis = await base.asistencia.where("estadoSync").equals("sincronizado").toArray();
+  for (const a of asis) {
+    if (a.archivosSubidos) continue;
+    if (!a.foto) {
+      await base.asistencia.update(a.id, { archivosSubidos: true });
+      continue;
+    }
+    if (await subirUno("asistencia", a.id, { fotos: [a.foto] })) {
+      await base.asistencia.update(a.id, { archivosSubidos: true });
+      subidos++;
+    }
+  }
+
+  const areas = await base.area_detalle.where("estadoSync").equals("sincronizado").toArray();
+  for (const d of areas) {
+    if (d.archivosSubidos) continue;
+    const fotos = Array.isArray(d.fotos) ? d.fotos : [];
+    if (fotos.length === 0) {
+      await base.area_detalle.update(d.area_id, { archivosSubidos: true });
+      continue;
+    }
+    if (await subirUno("area_detalle", d.area_id, { fotos })) {
+      await base.area_detalle.update(d.area_id, { archivosSubidos: true });
+      subidos++;
+    }
+  }
+  return subidos;
+}
+
 let sincronizando = false;
 
 /**
@@ -113,6 +184,8 @@ export async function sincronizar(): Promise<{ enviados: number; pendientes: num
         }
       }
     }
+    // Con los datos arriba, subimos audio/fotos a Storage (idempotente).
+    await subirArchivos();
   } finally {
     sincronizando = false;
   }

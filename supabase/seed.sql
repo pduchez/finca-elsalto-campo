@@ -54,3 +54,16 @@ insert into protocolos (id, titulo, actividad_codigo, disparador_keywords, conte
    '{biol,foliar,aspersi}',
    '## Fertilización foliar (Bioles)\n\n_Contenido pendiente de cargar por el dueño._\n\n- Decí qué biol y cuántos litros.\n- Registrá el área y tomá foto.\n', 3)
 on conflict (id) do nothing;
+
+-- Usuarios iniciales. Contraseña inicial de TODOS: "password" (hash scrypt).
+-- El sistema exige cambiarla en el primer ingreso (debe_cambiar_password = true).
+insert into usuarios (username, nombre, rol, password_hash, debe_cambiar_password) values
+  ('Director1', 'Director 1', 'director',
+   'scrypt:0df23e0c8bd8b21de15787c9901837f2:6eeacc8bcf44201140d8caf2b148a371eecdf5c0bef4e087971f9172a17f00898ffe31b1b987be17520093537c0f92301125290a04b18dfa242df6d0ad045ef2', true),
+  ('Director2', 'Director 2', 'director',
+   'scrypt:0df23e0c8bd8b21de15787c9901837f2:6eeacc8bcf44201140d8caf2b148a371eecdf5c0bef4e087971f9172a17f00898ffe31b1b987be17520093537c0f92301125290a04b18dfa242df6d0ad045ef2', true),
+  ('Supervisor1', 'Emerson', 'supervisor',
+   'scrypt:0df23e0c8bd8b21de15787c9901837f2:6eeacc8bcf44201140d8caf2b148a371eecdf5c0bef4e087971f9172a17f00898ffe31b1b987be17520093537c0f92301125290a04b18dfa242df6d0ad045ef2', true),
+  ('Administrativo1', 'Administrativo 1', 'administrativo',
+   'scrypt:0df23e0c8bd8b21de15787c9901837f2:6eeacc8bcf44201140d8caf2b148a371eecdf5c0bef4e087971f9172a17f00898ffe31b1b987be17520093537c0f92301125290a04b18dfa242df6d0ad045ef2', true)
+on conflict (username) do nothing;

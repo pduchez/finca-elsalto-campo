@@ -22,9 +22,17 @@ export default function PanelLayout({
       <header className="bg-finca-900 text-white px-6 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <h1 className="text-lg font-extrabold">Finca El Salto · Panel</h1>
-          <Link href="/campo" className="text-sm text-white/80 underline">
-            Ir a la app de campo
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/campo" className="text-sm text-white/80 underline">
+              Ir a la app de campo
+            </Link>
+            <a
+              href="/api/auth/logout"
+              className="text-sm font-bold bg-white/15 rounded-lg px-3 py-1.5"
+            >
+              Salir
+            </a>
+          </div>
         </div>
       </header>
       <nav className="bg-finca-700 text-white overflow-x-auto">

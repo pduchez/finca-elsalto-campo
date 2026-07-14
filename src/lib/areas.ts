@@ -52,7 +52,13 @@ function recalcular(d: AreaDetalleLocal): AreaDetalleLocal {
 }
 
 async function persistir(d: AreaDetalleLocal): Promise<void> {
-  const listo = recalcular({ ...d, actualizado_en: Date.now(), estadoSync: "pendiente", intentos: 0 });
+  const listo = recalcular({
+    ...d,
+    actualizado_en: Date.now(),
+    estadoSync: "pendiente",
+    intentos: 0,
+    archivosSubidos: false, // hay cambios: reintentar subida de fotos a Storage
+  });
   await db().area_detalle.put(listo);
   void sincronizar();
 }

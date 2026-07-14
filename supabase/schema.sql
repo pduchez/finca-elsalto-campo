@@ -92,7 +92,8 @@ create table if not exists areas_detalle (
   densidad_matas_mz numeric,
   matas_estimadas numeric,
   meta_produccion_qq numeric,             -- meta de quintales para el área
-  num_fotos int default 0,                -- fotos de referencia (los archivos van a Storage)
+  num_fotos int default 0,                -- cantidad de fotos de referencia
+  fotos jsonb default '[]',               -- rutas de las fotos en Storage
   notas text,
   actualizado_en timestamptz,
   sincronizado_en timestamptz
@@ -182,6 +183,21 @@ create table if not exists plan_dia (
   unique (fecha, area_id, actividad_id)
 );
 
+-- Usuarios del sistema (login con usuario y contraseña). Los hashes se guardan
+-- con scrypt. El acceso es SOLO vía service role desde los endpoints server; por
+-- eso RLS queda habilitado SIN políticas de lectura (la anon key no ve nada).
+create table if not exists usuarios (
+  id uuid primary key default gen_random_uuid(),
+  username text not null unique,
+  nombre text,
+  rol text check (rol in ('director','supervisor','administrativo')) not null,
+  password_hash text not null,
+  debe_cambiar_password boolean default true,
+  activo boolean default true,
+  creado_en timestamptz default now(),
+  actualizado_en timestamptz
+);
+
 -- =====================================================================
 -- Storage: bucket para audio y fotos (crear en el panel de Supabase o aquí)
 -- =====================================================================
@@ -200,6 +216,7 @@ alter table tareas_destajo   enable row level security;
 alter table consultas_protocolo enable row level security;
 alter table vivero_registros enable row level security;
 alter table areas_detalle    enable row level security;
+alter table usuarios         enable row level security; -- sin políticas: solo service role
 
 do $$
 begin

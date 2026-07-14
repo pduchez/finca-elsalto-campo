@@ -46,6 +46,7 @@ export interface RegistroLocal extends Gps {
   estadoSync: EstadoSync;
   intentos: number;
   sincronizado_en?: number | null;
+  archivosSubidos?: boolean; // audio/fotos ya subidos a Storage
 }
 
 export interface AsistenciaLocal {
@@ -67,6 +68,7 @@ export interface AsistenciaLocal {
   estadoSync: EstadoSync;
   intentos: number;
   sincronizado_en?: number | null;
+  archivosSubidos?: boolean; // foto ya subida a Storage
 }
 
 export interface TareaDestajoLocal {
@@ -125,6 +127,7 @@ export interface AreaDetalleLocal extends AreaDetalle {
   estadoSync: EstadoSync;
   intentos: number;
   sincronizado_en?: number | null;
+  archivosSubidos?: boolean; // fotos ya subidas a Storage
 }
 
 /**

@@ -15,7 +15,15 @@ export default function CampoLayout({
         <Link href="/campo" className="text-xl font-extrabold tracking-tight">
           Finca El Salto
         </Link>
-        <IndicadorSync />
+        <div className="flex items-center gap-3">
+          <IndicadorSync />
+          <a
+            href="/api/auth/logout"
+            className="text-sm font-bold bg-white/15 rounded-lg px-3 py-2"
+          >
+            Salir
+          </a>
+        </div>
       </header>
       <main className="flex-1 p-5 max-w-xl w-full mx-auto">{children}</main>
     </div>
