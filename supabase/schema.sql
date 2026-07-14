@@ -126,13 +126,15 @@ create table if not exists asistencia (
 
 -- MODELO 2 DE JORNAL: trabajo por tarea (destajo)
 create table if not exists tareas_destajo (
-  id uuid primary key,                     -- uuid del cliente
+  id uuid primary key,                     -- uuid del cliente (una línea por colaborador)
+  grupo_id uuid,                           -- agrupa las líneas de una misma tarea
   fecha date not null,
   area_id uuid references areas(id),
   actividad_id uuid references actividades(id),
   descripcion_unidad text not null,
+  unidad text,                             -- unidad de medida (matas, quintales, litros...)
   precio_pactado numeric not null,
-  unidades_ejecutadas numeric not null,
+  unidades_ejecutadas numeric not null,    -- unidades de ESTE colaborador (destajo individual)
   trabajador_id uuid references trabajadores(id),
   total_calculado numeric generated always as (precio_pactado * unidades_ejecutadas) stored,
   sincronizado_en timestamptz

@@ -14,6 +14,7 @@ const COMPLETA_KEY = "finca_catorcena_completa";
 export default function PlanillaPage() {
   const router = useRouter();
   const asistencia = useLiveQuery(() => db().asistencia.toArray(), [], []);
+  const destajo = useLiveQuery(() => db().tareas_destajo.toArray(), [], []);
   const [inicio, setInicio] = useState<string>(() => inicioSugerido(hoyISO()));
   const [completa, setCompleta] = useState<number>(CATORCENA_COMPLETA_DEFECTO);
   const [exportando, setExportando] = useState(false);
@@ -30,8 +31,8 @@ export default function PlanillaPage() {
   }
 
   const planilla = useMemo(
-    () => calcularPlanilla(inicio, completa, asistencia),
-    [inicio, completa, asistencia],
+    () => calcularPlanilla(inicio, completa, asistencia, destajo),
+    [inicio, completa, asistencia, destajo],
   );
 
   async function exportarExcel() {
@@ -92,7 +93,7 @@ export default function PlanillaPage() {
 
       {planilla.filas.length === 0 ? (
         <p className="text-finca-600">
-          No hay días trabajados en este período. Ajustá la fecha de inicio o registrá asistencia.
+          No hay días trabajados ni destajo en este período. Ajustá la fecha de inicio o registrá en campo.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-finca-100">
@@ -101,25 +102,29 @@ export default function PlanillaPage() {
               <tr>
                 <th className="px-3 py-2">Colaborador</th>
                 <th className="px-2 py-2 text-center">Días</th>
-                <th className="px-2 py-2 text-center">Completo</th>
-                <th className="px-3 py-2 text-right">Pago</th>
+                <th className="px-2 py-2 text-right">Jornal</th>
+                <th className="px-2 py-2 text-right">Destajo</th>
+                <th className="px-3 py-2 text-right">Total</th>
               </tr>
             </thead>
             <tbody>
               {planilla.filas.map((f) => (
                 <tr key={f.trabajador_id} className="border-t border-finca-100">
-                  <td className="px-3 py-2 font-semibold text-finca-800">{f.nombre}</td>
-                  <td className="px-2 py-2 text-center">{f.diasTrabajados}/12</td>
-                  <td className="px-2 py-2 text-center">
-                    {f.completo ? "✓" : <span className="text-finca-300">—</span>}
+                  <td className="px-3 py-2 font-semibold text-finca-800">
+                    {f.nombre}
+                    {f.completo && <span className="text-listo"> ✓</span>}
                   </td>
+                  <td className="px-2 py-2 text-center">{f.diasTrabajados}/12</td>
+                  <td className="px-2 py-2 text-right">{f.pagoJornal ? `$${f.pagoJornal.toFixed(2)}` : "—"}</td>
+                  <td className="px-2 py-2 text-right">{f.pagoDestajo ? `$${f.pagoDestajo.toFixed(2)}` : "—"}</td>
                   <td className="px-3 py-2 text-right font-bold">${f.totalPago.toFixed(2)}</td>
                 </tr>
               ))}
               <tr className="border-t-2 border-finca-500 bg-finca-50 font-extrabold text-finca-800">
                 <td className="px-3 py-2">TOTALES</td>
                 <td className="px-2 py-2 text-center">{planilla.totalDias}</td>
-                <td></td>
+                <td className="px-2 py-2 text-right">${planilla.totalJornal.toFixed(2)}</td>
+                <td className="px-2 py-2 text-right">${planilla.totalDestajo.toFixed(2)}</td>
                 <td className="px-3 py-2 text-right">${planilla.totalPago.toFixed(2)}</td>
               </tr>
             </tbody>
@@ -128,8 +133,8 @@ export default function PlanillaPage() {
       )}
 
       <p className="text-finca-600 text-sm">
-        Revisá que esté bien. <b>Completo ✓</b> = trabajó los 12 días y se paga la
-        catorcena completa (${completa}).
+        Un solo reporte para contabilidad: <b>jornal</b> (días × ${planilla.jornalDia.toFixed(2)};
+        los 12 = catorcena completa ${completa}) más <b>destajo</b> (honorarios del período). ✓ = hizo los 12 días.
       </p>
 
       <button

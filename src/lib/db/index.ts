@@ -71,14 +71,16 @@ export interface AsistenciaLocal {
 
 export interface TareaDestajoLocal {
   id: string;
+  grupo_id: string; // agrupa las líneas de una misma tarea (varios colaboradores)
   fecha: string;
   area_id: string | null;
   area_nombre?: string | null;
   actividad_id: string | null;
   actividad_nombre?: string | null;
   descripcion_unidad: string;
+  unidad?: string | null; // unidad de medida (matas, quintales, litros...)
   precio_pactado: number;
-  unidades_ejecutadas: number;
+  unidades_ejecutadas: number; // unidades de ESTE colaborador (destajo individual)
   trabajador_id: string | null;
   trabajador_nombre?: string | null;
   total_calculado: number; // precio * unidades (se calcula en el cliente para mostrar)

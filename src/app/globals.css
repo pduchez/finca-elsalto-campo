@@ -64,4 +64,9 @@ body {
     @apply w-full text-lg font-bold bg-crema rounded-xl p-3 text-center
            border-2 border-finca-100 text-finca-900;
   }
+
+  .stepper-sm {
+    @apply w-11 h-11 rounded-lg border-2 border-finca-500 bg-white text-finca-700
+           text-2xl font-extrabold shrink-0 leading-none;
+  }
 }

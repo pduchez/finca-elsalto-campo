@@ -85,32 +85,43 @@ export async function registrarAsistencia(
   void sincronizar();
 }
 
-/** Guarda una tarea por destajo (el total se calcula en el cliente y el servidor). */
-export async function guardarDestajo(t: {
+/**
+ * Guarda una tarea a destajo hecha por un GRUPO. Destajo individual: cada
+ * colaborador tiene sus propias unidades y se le paga precio × sus unidades.
+ * Se crea una línea por colaborador, todas con el mismo `grupo_id`.
+ */
+export async function guardarGrupoDestajo(t: {
   area: { id: string; nombre: string } | null;
   actividad: { id: string; nombre: string } | null;
   descripcion_unidad: string;
+  unidad?: string | null;
   precio_pactado: number;
-  unidades_ejecutadas: number;
-  trabajador: { id: string; nombre: string } | null;
+  miembros: { id: string; nombre: string; unidades: number }[];
 }): Promise<void> {
-  const fila: TareaDestajoLocal = {
-    id: uuidv4(),
-    fecha: hoyISO(),
-    area_id: t.area?.id ?? null,
-    area_nombre: t.area?.nombre ?? null,
-    actividad_id: t.actividad?.id ?? null,
-    actividad_nombre: t.actividad?.nombre ?? null,
-    descripcion_unidad: t.descripcion_unidad,
-    precio_pactado: t.precio_pactado,
-    unidades_ejecutadas: t.unidades_ejecutadas,
-    trabajador_id: t.trabajador?.id ?? null,
-    trabajador_nombre: t.trabajador?.nombre ?? null,
-    total_calculado: t.precio_pactado * t.unidades_ejecutadas,
-    estadoSync: "pendiente",
-    intentos: 0,
-  };
-  await db().tareas_destajo.put(fila);
+  const grupo_id = uuidv4();
+  const fecha = hoyISO();
+  const filas: TareaDestajoLocal[] = t.miembros
+    .filter((m) => m.unidades > 0)
+    .map((m) => ({
+      id: uuidv4(),
+      grupo_id,
+      fecha,
+      area_id: t.area?.id ?? null,
+      area_nombre: t.area?.nombre ?? null,
+      actividad_id: t.actividad?.id ?? null,
+      actividad_nombre: t.actividad?.nombre ?? null,
+      descripcion_unidad: t.descripcion_unidad,
+      unidad: t.unidad ?? null,
+      precio_pactado: t.precio_pactado,
+      unidades_ejecutadas: m.unidades,
+      trabajador_id: m.id,
+      trabajador_nombre: m.nombre,
+      total_calculado: t.precio_pactado * m.unidades,
+      estadoSync: "pendiente",
+      intentos: 0,
+    }));
+  if (filas.length === 0) return;
+  await db().tareas_destajo.bulkPut(filas);
   void sincronizar();
 }
 

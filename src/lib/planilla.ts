@@ -1,4 +1,4 @@
-import type { AsistenciaLocal } from "@/lib/db";
+import type { AsistenciaLocal, TareaDestajoLocal } from "@/lib/db";
 
 /**
  * Planilla catorcenal.
@@ -28,8 +28,9 @@ export interface FilaPlanilla {
   nombre: string;
   diasTrabajados: number; // 0–12
   completo: boolean; // trabajó los 12
-  totalPago: number;
-  presentes: Set<string>;
+  pagoJornal: number;
+  pagoDestajo: number;
+  totalPago: number; // jornal + destajo
 }
 
 export interface Planilla {
@@ -40,6 +41,8 @@ export interface Planilla {
   jornalDia: number; // completa / 12
   filas: FilaPlanilla[];
   totalDias: number;
+  totalJornal: number;
+  totalDestajo: number;
   totalPago: number;
 }
 
@@ -78,31 +81,54 @@ export function calcularPlanilla(
   inicioISO: string,
   catorcenaCompleta: number,
   asistencia: AsistenciaLocal[],
+  destajo: TareaDestajoLocal[] = [],
 ): Planilla {
   const dias = diasCatorcena(inicioISO);
   const laborables = dias.filter((d) => d.laborable).map((d) => d.fecha); // 12
   const setLab = new Set(laborables);
+  const periodo = new Set(dias.map((d) => d.fecha)); // 14 días (para destajo)
   const jornalDia = catorcenaCompleta / DIAS_LABORABLES;
 
-  const porTrab = new Map<string, { nombre: string; presentes: Set<string> }>();
+  type Acc = { nombre: string; presentes: Set<string>; destajo: number };
+  const porTrab = new Map<string, Acc>();
+  const get = (id: string, nombre?: string | null): Acc => {
+    let v = porTrab.get(id);
+    if (!v) {
+      v = { nombre: nombre ?? "—", presentes: new Set<string>(), destajo: 0 };
+      porTrab.set(id, v);
+    }
+    if (nombre) v.nombre = nombre;
+    return v;
+  };
+
+  // Jornal: presencias en los 12 días laborables.
   for (const a of asistencia) {
     if (!a.presente || !setLab.has(a.fecha)) continue;
-    const cur = porTrab.get(a.trabajador_id) ?? {
-      nombre: a.trabajador_nombre ?? "—",
-      presentes: new Set<string>(),
-    };
-    cur.presentes.add(a.fecha);
-    if (a.trabajador_nombre) cur.nombre = a.trabajador_nombre;
-    porTrab.set(a.trabajador_id, cur);
+    get(a.trabajador_id, a.trabajador_nombre).presentes.add(a.fecha);
+  }
+  // Destajo: honorarios del período (cualquier día de la catorcena).
+  for (const t of destajo) {
+    if (!t.trabajador_id || !periodo.has(t.fecha)) continue;
+    get(t.trabajador_id, t.trabajador_nombre).destajo += t.total_calculado;
   }
 
   const filas: FilaPlanilla[] = [];
   for (const [id, v] of porTrab) {
     const diasTrabajados = v.presentes.size;
     const completo = diasTrabajados === laborables.length;
-    // Si trabajó los 12, se paga exactamente la catorcena completa.
-    const totalPago = completo ? catorcenaCompleta : redondear(diasTrabajados * jornalDia);
-    filas.push({ trabajador_id: id, nombre: v.nombre, diasTrabajados, completo, totalPago, presentes: v.presentes });
+    // Si trabajó los 12, el jornal es exactamente la catorcena completa.
+    const pagoJornal =
+      diasTrabajados === 0 ? 0 : completo ? catorcenaCompleta : redondear(diasTrabajados * jornalDia);
+    const pagoDestajo = redondear(v.destajo);
+    filas.push({
+      trabajador_id: id,
+      nombre: v.nombre,
+      diasTrabajados,
+      completo,
+      pagoJornal,
+      pagoDestajo,
+      totalPago: redondear(pagoJornal + pagoDestajo),
+    });
   }
   filas.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
@@ -114,6 +140,8 @@ export function calcularPlanilla(
     jornalDia,
     filas,
     totalDias: filas.reduce((s, f) => s + f.diasTrabajados, 0),
+    totalJornal: redondear(filas.reduce((s, f) => s + f.pagoJornal, 0)),
+    totalDestajo: redondear(filas.reduce((s, f) => s + f.pagoDestajo, 0)),
     totalPago: redondear(filas.reduce((s, f) => s + f.totalPago, 0)),
   };
 }

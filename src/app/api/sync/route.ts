@@ -62,10 +62,12 @@ function aFila(tipo: string, item: any): { tabla: string; fila: any } {
         tabla: "tareas_destajo",
         fila: {
           id: item.id,
+          grupo_id: item.grupo_id ?? null,
           fecha: item.fecha,
           area_id: item.area_id,
           actividad_id: item.actividad_id,
           descripcion_unidad: item.descripcion_unidad,
+          unidad: item.unidad ?? null,
           precio_pactado: item.precio_pactado,
           unidades_ejecutadas: item.unidades_ejecutadas,
           trabajador_id: item.trabajador_id,

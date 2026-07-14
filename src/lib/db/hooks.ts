@@ -119,6 +119,15 @@ export function useConsolidadoArea(areaId: string): ConsolidadoArea | undefined 
   );
 }
 
+/** Tareas a destajo (más recientes primero). */
+export function useTareasDestajo() {
+  return useLiveQuery(
+    async () => (await db().tareas_destajo.toArray()).sort((a, b) => b.fecha.localeCompare(a.fecha)),
+    [],
+    [],
+  );
+}
+
 /** Historial completo de registros de un área (más reciente primero). */
 export function useRegistrosArea(areaId: string) {
   return useLiveQuery(
