@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import BotonInstalar from "@/components/BotonInstalar";
 
 /** Pantalla de ingreso: usuario + contraseña. Sesión permanente. */
 export default function LoginPage() {
@@ -86,6 +87,8 @@ export default function LoginPage() {
           Primera vez: usá tu usuario y la contraseña <b>password</b>. El sistema
           te pedirá cambiarla.
         </p>
+
+        <BotonInstalar className="mt-6" />
       </div>
     </main>
   );

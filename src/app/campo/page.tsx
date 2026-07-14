@@ -1,6 +1,7 @@
 "use client";
 
 import BotonGrande from "@/components/BotonGrande";
+import BotonInstalar from "@/components/BotonInstalar";
 import { usePlanHoy, useRegistrosHoy } from "@/lib/db/hooks";
 
 const ESTADOS: Record<string, string> = {
@@ -62,6 +63,8 @@ export default function CampoHome() {
           📖 Protocolos
         </BotonGrande>
       </div>
+
+      <BotonInstalar tono="claro" />
 
       {registrosHoy.length > 0 && (
         <section>
