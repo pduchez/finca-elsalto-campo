@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { landingDeRol } from "@/lib/auth/token";
 
 /** Cambio de contraseña. Obligatorio en el primer ingreso. */
 export default function CambiarClavePage() {
@@ -36,7 +37,7 @@ export default function CambiarClavePage() {
         setCargando(false);
         return;
       }
-      router.replace(data.rol === "supervisor" ? "/campo" : "/panel");
+      router.replace(landingDeRol(data.rol));
       router.refresh();
     } catch {
       setError("Sin conexión. Probá de nuevo con señal.");

@@ -34,7 +34,9 @@ export function authSecret(): string {
 
 /** A dónde entra cada rol después de iniciar sesión. */
 export function landingDeRol(rol: Rol | string): string {
-  return rol === "supervisor" ? "/campo" : "/panel";
+  if (rol === "supervisor") return "/campo";
+  if (rol === "director") return "/director"; // pantalla con los dos accesos
+  return "/panel";
 }
 
 function bytesABinario(bytes: Uint8Array): string {

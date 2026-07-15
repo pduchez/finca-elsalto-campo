@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import BotonInstalar from "@/components/BotonInstalar";
+import { landingDeRol } from "@/lib/auth/token";
 
 /** Pantalla de ingreso: usuario + contraseña. Sesión permanente. */
 export default function LoginPage() {
@@ -31,7 +32,7 @@ export default function LoginPage() {
       if (data.cambiar) {
         router.replace("/cambiar-clave");
       } else {
-        router.replace(data.rol === "supervisor" ? "/campo" : "/panel");
+        router.replace(landingDeRol(data.rol));
       }
       router.refresh();
     } catch {

@@ -31,5 +31,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/campo/:path*", "/panel/:path*", "/cambiar-clave"],
+  matcher: ["/", "/director", "/campo/:path*", "/panel/:path*", "/cambiar-clave"],
 };
