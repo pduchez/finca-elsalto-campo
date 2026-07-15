@@ -49,6 +49,8 @@ export async function POST(req: Request) {
 
   const audio = form.get("audio");
   const fotos = form.getAll("foto").filter((f): f is File => f instanceof File);
+  const areaNombre = (form.get("area_nombre") as string) || null;
+  const actividadNombre = (form.get("actividad_nombre") as string) || null;
 
   if (!configurado()) {
     return NextResponse.json({ ok: true, demo: true });
@@ -82,6 +84,41 @@ export async function POST(req: Request) {
       const patch: Record<string, unknown> = {};
       if (audioRuta) patch.audio_url = audioRuta;
       if (fotoRutas.length) patch.fotos = fotoRutas;
+
+      // Cadena de voz: audio → texto (Groq) → datos estructurados (Claude).
+      if (audio instanceof File && audio.size > 0 && process.env.GROQ_API_KEY) {
+        const { transcribirAudio } = await import("@/lib/groq/transcribir");
+        const texto = await transcribirAudio(audio, `audio.${extDe(audio.type)}`);
+        if (texto) {
+          patch.audio_transcripcion = texto;
+          patch.procesado = true;
+          if (process.env.ANTHROPIC_API_KEY) {
+            try {
+              const { extraerDeTranscripcion } = await import(
+                "@/lib/anthropic/extraccion"
+              );
+              const ext = await extraerDeTranscripcion(texto, {
+                area: areaNombre,
+                actividad: actividadNombre,
+              });
+              patch.cantidad = ext.cantidad;
+              patch.unidad = ext.unidad;
+              if (ext.jornales_usados != null) patch.jornales_usados = ext.jornales_usados;
+              patch.observaciones = ext.observaciones;
+              patch.problema_detectado = ext.problema_detectado;
+              patch.descripcion_problema = ext.descripcion_problema;
+              patch.insumo_agotado = ext.insumo_agotado;
+              patch.extraccion_confianza = ext.confianza;
+              patch.requiere_revision = ext.confianza < 0.7;
+              patch.raw_json = ext;
+            } catch {
+              // El texto igual queda guardado; se marca para revisión manual.
+              patch.requiere_revision = true;
+            }
+          }
+        }
+      }
+
       if (Object.keys(patch).length) {
         const { error } = await supa.from("registros").update(patch).eq("id", id);
         if (error) throw error;

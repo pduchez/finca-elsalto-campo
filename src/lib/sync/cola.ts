@@ -61,13 +61,16 @@ function aPayload(tabla: TablaSync, item: any) {
 async function subirUno(
   tabla: "registros" | "asistencia" | "area_detalle",
   id: string,
-  opts: { audio?: Blob | null; fotos: Blob[] },
+  opts: { audio?: Blob | null; fotos: Blob[]; meta?: Record<string, string | null | undefined> },
 ): Promise<boolean> {
   const fd = new FormData();
   fd.set("tabla", tabla === "area_detalle" ? "areas_detalle" : tabla);
   fd.set("id", id);
   if (opts.audio) fd.set("audio", opts.audio, "audio");
   for (const f of opts.fotos) fd.append("foto", f, "foto");
+  if (opts.meta) {
+    for (const [k, v] of Object.entries(opts.meta)) if (v) fd.set(k, v);
+  }
   try {
     const res = await fetch("/api/upload", { method: "POST", body: fd });
     return res.ok;
@@ -89,7 +92,13 @@ export async function subirArchivos(): Promise<number> {
       await base.registros.update(r.id, { archivosSubidos: true });
       continue;
     }
-    if (await subirUno("registros", r.id, { audio: r.audioBlob, fotos })) {
+    if (
+      await subirUno("registros", r.id, {
+        audio: r.audioBlob,
+        fotos,
+        meta: { area_nombre: r.area_nombre, actividad_nombre: r.actividad_nombre },
+      })
+    ) {
       await base.registros.update(r.id, { archivosSubidos: true });
       subidos++;
     }
