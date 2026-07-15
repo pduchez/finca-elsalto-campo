@@ -407,6 +407,22 @@ function Campo({ etiqueta, children }: { etiqueta: string; children: React.React
   );
 }
 
+//// ---------- Reproductor del audio local ----------
+function ReproductorAudio({ blob }: { blob: Blob }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    const u = URL.createObjectURL(blob);
+    setUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [blob]);
+  if (!url) return null;
+  return (
+    <audio controls preload="none" src={url} className="w-full mt-2 h-9">
+      Tu teléfono no puede reproducir este audio.
+    </audio>
+  );
+}
+
 //// ---------- Historial completo ----------
 function Historial({ areaId, nombre, onListo }: { areaId: string; nombre: string; onListo: () => void }) {
   const registros = useRegistrosArea(areaId);
@@ -427,11 +443,24 @@ function Historial({ areaId, nombre, onListo }: { areaId: string; nombre: string
               <div className="text-sm text-finca-700 flex flex-wrap gap-x-3">
                 {r.cantidad != null && <span>{r.cantidad} {r.unidad ?? ""}</span>}
                 {r.jornales_usados != null && <span>{r.jornales_usados} jornal(es)</span>}
-                {r.audioBlob && <span>🎤</span>}
                 {r.fotos?.length ? <span>📷 {r.fotos.length}</span> : null}
                 {r.problema_detectado && <span className="text-alerta">🐛 problema</span>}
               </div>
-              {r.observaciones && <p className="text-sm text-finca-600 mt-1">{r.observaciones}</p>}
+              {r.audio_transcripcion ? (
+                <p className="text-sm text-finca-800 mt-2 seleccionable">
+                  <span className="text-finca-500">🎤 </span>“{r.audio_transcripcion}”
+                </p>
+              ) : r.audioBlob ? (
+                <p className="text-xs text-finca-500 mt-1">
+                  🎤 Audio guardado; se transcribe cuando haya señal.
+                </p>
+              ) : null}
+              {r.observaciones && r.observaciones !== r.audio_transcripcion && (
+                <p className="text-sm text-finca-600 mt-1">
+                  <span className="text-finca-400">Resumen:</span> {r.observaciones}
+                </p>
+              )}
+              {r.audioBlob && <ReproductorAudio blob={r.audioBlob} />}
             </li>
           ))}
         </ul>

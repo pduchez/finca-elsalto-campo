@@ -80,6 +80,10 @@ export async function POST(req: Request) {
       fotoRutas.push(await subir(`foto-${i}.${extDe(fotos[i].type)}`, fotos[i]));
     }
 
+    // Campos derivados del audio, que además devolvemos al cliente para que los
+    // muestre en el historial del área (el teléfono lee de su base local).
+    let derivados: Record<string, unknown> | null = null;
+
     if (tabla === "registros") {
       const patch: Record<string, unknown> = {};
       if (audioRuta) patch.audio_url = audioRuta;
@@ -90,6 +94,7 @@ export async function POST(req: Request) {
         const { transcribirAudio } = await import("@/lib/groq/transcribir");
         const texto = await transcribirAudio(audio, `audio.${extDe(audio.type)}`);
         if (texto) {
+          derivados = { audio_transcripcion: texto };
           patch.audio_transcripcion = texto;
           patch.procesado = true;
           if (process.env.ANTHROPIC_API_KEY) {
@@ -111,6 +116,16 @@ export async function POST(req: Request) {
               patch.extraccion_confianza = ext.confianza;
               patch.requiere_revision = ext.confianza < 0.7;
               patch.raw_json = ext;
+              derivados = {
+                audio_transcripcion: texto,
+                cantidad: ext.cantidad,
+                unidad: ext.unidad,
+                observaciones: ext.observaciones,
+                problema_detectado: ext.problema_detectado,
+                descripcion_problema: ext.descripcion_problema,
+                insumo_agotado: ext.insumo_agotado,
+                ...(ext.jornales_usados != null ? { jornales_usados: ext.jornales_usados } : {}),
+              };
             } catch {
               // El texto igual queda guardado; se marca para revisión manual.
               patch.requiere_revision = true;
@@ -141,7 +156,7 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ ok: true, audio: audioRuta, fotos: fotoRutas });
+    return NextResponse.json({ ok: true, audio: audioRuta, fotos: fotoRutas, derivados });
   } catch (e: any) {
     return NextResponse.json(
       { ok: false, error: e?.message ?? "error de Storage" },

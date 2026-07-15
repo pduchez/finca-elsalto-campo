@@ -62,7 +62,7 @@ async function subirUno(
   tabla: "registros" | "asistencia" | "area_detalle",
   id: string,
   opts: { audio?: Blob | null; fotos: Blob[]; meta?: Record<string, string | null | undefined> },
-): Promise<boolean> {
+): Promise<{ ok: boolean; derivados?: Record<string, unknown> | null }> {
   const fd = new FormData();
   fd.set("tabla", tabla === "area_detalle" ? "areas_detalle" : tabla);
   fd.set("id", id);
@@ -73,9 +73,11 @@ async function subirUno(
   }
   try {
     const res = await fetch("/api/upload", { method: "POST", body: fd });
-    return res.ok;
+    if (!res.ok) return { ok: false };
+    const data = await res.json().catch(() => ({}));
+    return { ok: true, derivados: data?.derivados ?? null };
   } catch {
-    return false;
+    return { ok: false };
   }
 }
 
@@ -92,14 +94,18 @@ export async function subirArchivos(): Promise<number> {
       await base.registros.update(r.id, { archivosSubidos: true });
       continue;
     }
-    if (
-      await subirUno("registros", r.id, {
-        audio: r.audioBlob,
-        fotos,
-        meta: { area_nombre: r.area_nombre, actividad_nombre: r.actividad_nombre },
-      })
-    ) {
-      await base.registros.update(r.id, { archivosSubidos: true });
+    const resReg = await subirUno("registros", r.id, {
+      audio: r.audioBlob,
+      fotos,
+      meta: { area_nombre: r.area_nombre, actividad_nombre: r.actividad_nombre },
+    });
+    if (resReg.ok) {
+      // Guardamos la transcripción y los datos extraídos en la base local para
+      // que se vean en el historial del área (el teléfono lee de local).
+      await base.registros.update(r.id, {
+        archivosSubidos: true,
+        ...(resReg.derivados ?? {}),
+      });
       subidos++;
     }
   }
@@ -111,7 +117,7 @@ export async function subirArchivos(): Promise<number> {
       await base.asistencia.update(a.id, { archivosSubidos: true });
       continue;
     }
-    if (await subirUno("asistencia", a.id, { fotos: [a.foto] })) {
+    if ((await subirUno("asistencia", a.id, { fotos: [a.foto] })).ok) {
       await base.asistencia.update(a.id, { archivosSubidos: true });
       subidos++;
     }
@@ -125,7 +131,7 @@ export async function subirArchivos(): Promise<number> {
       await base.area_detalle.update(d.area_id, { archivosSubidos: true });
       continue;
     }
-    if (await subirUno("area_detalle", d.area_id, { fotos })) {
+    if ((await subirUno("area_detalle", d.area_id, { fotos })).ok) {
       await base.area_detalle.update(d.area_id, { archivosSubidos: true });
       subidos++;
     }
