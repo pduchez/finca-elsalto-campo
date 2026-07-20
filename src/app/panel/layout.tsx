@@ -1,14 +1,13 @@
 import Link from "next/link";
 import ProveedorPanel from "@/components/ProveedorPanel";
 
-// Panel del dueño. En este build lee los datos locales del dispositivo (modo
-// demo). En producción se protege con Supabase Auth y lee de Postgres.
+// Panel del dueño: reportes leídos de Supabase en el servidor (con la sesión
+// del director). Presenta la finca de un pantallazo.
 const NAV = [
-  { href: "/panel", label: "Briefing" },
-  { href: "/panel/trazabilidad", label: "Trazabilidad" },
-  { href: "/panel/costos", label: "Costos" },
-  { href: "/panel/avance", label: "Avance" },
-  { href: "/panel/admin", label: "Administración" },
+  { href: "/panel", label: "Resumen" },
+  { href: "/panel/cosecha", label: "Cosecha" },
+  { href: "/panel/campanas", label: "Campañas" },
+  { href: "/panel/fotos", label: "Fotos" },
 ];
 
 export default function PanelLayout({
@@ -49,13 +48,7 @@ export default function PanelLayout({
         </div>
       </nav>
       <main className="flex-1 bg-crema">
-        <div className="max-w-5xl mx-auto p-6">
-          <div className="mb-4 text-sm text-pendiente bg-pendiente/10 border border-pendiente/30 rounded-lg px-4 py-2">
-            Modo demo: mostrando los datos guardados en este dispositivo. En
-            producción el panel lee de Supabase con tu sesión.
-          </div>
-          {children}
-        </div>
+        <div className="max-w-5xl mx-auto p-6">{children}</div>
       </main>
     </div>
   );
