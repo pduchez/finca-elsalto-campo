@@ -33,6 +33,31 @@ export async function setActivoColaborador(id: string, activo: boolean): Promise
   void sincronizar();
 }
 
+/**
+ * Guarda (o actualiza) el rostro registrado de un colaborador: el descriptor
+ * biométrico de 128 números. No guarda la cara, solo ese vector.
+ */
+export async function guardarRostro(id: string, descriptor: number[]): Promise<void> {
+  await db().trabajadores.update(id, {
+    face_descriptor: descriptor,
+    rostro_actualizado_en: Date.now(),
+    estadoSync: "pendiente",
+    intentos: 0,
+  });
+  void sincronizar();
+}
+
+/** Borra el rostro registrado de un colaborador. */
+export async function borrarRostro(id: string): Promise<void> {
+  await db().trabajadores.update(id, {
+    face_descriptor: null,
+    rostro_actualizado_en: Date.now(),
+    estadoSync: "pendiente",
+    intentos: 0,
+  });
+  void sincronizar();
+}
+
 /** Cambia el nombre de un colaborador. */
 export async function renombrarColaborador(id: string, nombre: string): Promise<void> {
   const limpio = nombre.trim();

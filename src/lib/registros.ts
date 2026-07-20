@@ -56,6 +56,8 @@ export async function registrarAsistencia(
     presente: boolean;
     foto?: Blob | null;
     area?: { id: string; nombre: string } | null;
+    verificado_rostro?: boolean;
+    similitud?: number | null;
   },
 ): Promise<void> {
   const fecha = hoyISO();
@@ -77,6 +79,8 @@ export async function registrarAsistencia(
     ...gps,
     foto: opts.foto ?? null,
     evidencia_foto: !!opts.foto,
+    verificado_rostro: !!opts.verificado_rostro,
+    similitud: opts.similitud ?? null,
     registrado_por: USUARIO,
     estadoSync: "pendiente",
     intentos: 0,

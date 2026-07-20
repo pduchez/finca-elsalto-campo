@@ -64,6 +64,8 @@ export interface AsistenciaLocal {
   precision_gps: number | null;
   foto?: Blob | null; // evidencia local; se sube aparte al sincronizar
   evidencia_foto: boolean; // true si se registró con foto geoposicionada
+  verificado_rostro?: boolean; // true si el rostro coincidió con el registrado
+  similitud?: number | null; // 0–100% de parecido con el rostro registrado
   registrado_por: string;
   estadoSync: EstadoSync;
   intentos: number;
@@ -136,6 +138,8 @@ export interface AreaDetalleLocal extends AreaDetalle {
  * sincronizan; los sembrados no llevan estadoSync.
  */
 export interface TrabajadorLocal extends Trabajador {
+  face_descriptor?: number[] | null; // 128 números del rostro (biométrico, no reversible a foto)
+  rostro_actualizado_en?: number | null;
   estadoSync?: EstadoSync;
   intentos?: number;
   sincronizado_en?: number | null;
