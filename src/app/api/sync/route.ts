@@ -54,6 +54,8 @@ function aFila(tipo: string, item: any): { tabla: string; fila: any } {
           longitud: item.longitud,
           precision_gps: item.precision_gps,
           evidencia_foto: !!item.evidencia_foto,
+          verificado_rostro: !!item.verificado_rostro,
+          similitud: item.similitud ?? null,
           registrado_por: item.registrado_por ?? "emerson",
         },
       };
@@ -90,6 +92,7 @@ function aFila(tipo: string, item: any): { tabla: string; fila: any } {
           nombre: item.nombre,
           tipo: item.tipo ?? "planilla",
           activo: item.activo ?? true,
+          face_descriptor: item.face_descriptor ?? null,
         },
       };
     case "area_detalle":

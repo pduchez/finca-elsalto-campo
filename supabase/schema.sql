@@ -40,6 +40,7 @@ create table if not exists trabajadores (
   nombre text not null,
   tipo text check (tipo in ('planilla','tarea','mixto')),
   activo boolean default true,
+  face_descriptor jsonb,                   -- descriptor biométrico (128 números); no es la foto
   sincronizado_en timestamptz
 );
 
@@ -119,6 +120,8 @@ create table if not exists asistencia (
   hora timestamptz,                        -- fecha y hora de la marca/foto
   latitud numeric, longitud numeric, precision_gps numeric,
   evidencia_foto boolean default false,
+  verificado_rostro boolean default false, -- true si el rostro coincidió con el registrado
+  similitud numeric,                       -- 0–100% de parecido con el rostro registrado
   foto_url text,                           -- archivo en Storage (se sube aparte)
   registrado_por text,
   sincronizado_en timestamptz,
