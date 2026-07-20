@@ -1,97 +1,86 @@
 {
-  "comment": "Pitch de ventas v2 — voz TTS (es-MX-Jorge) con tiempos por escena segun guion. Musica libre (dominio publico) muy baja.",
+  "comment": "Pitch de ventas v3 (limpio). Tarjetas de texto + voz. Cada escena dura lo que dura su frase (duration -1) => voz sincronizada, sin cortes. Sin video ni musica para eliminar el caos; se reintegran despues de a uno.",
   "resolution": "instagram-story",
   "quality": "high",
-  "elements": [
-    { "type": "audio", "src": "https://assets.json2video.com/assets/audios/mozart-kv525.mp3", "duration": -2, "volume": 0.07, "fade-out": 3 }
-  ],
   "scenes": [
     {
-      "comment": "0.3s — intro",
-      "duration": 4.8,
+      "duration": -1,
       "background-color": "#1b4d1e",
       "transition": { "style": "fade", "duration": 0.3 },
       "elements": [
-        { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "start": 0.3, "text": "Tu finca entera, en el bolsillo." },
-        { "type": "text", "style": "002", "text": "Tu finca entera,\nen el bolsillo", "settings": { "font-family": "Oswald", "font-size": "8vw", "color": "#ffffff", "text-align": "center", "line-height": "1.5" } }
+        { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Tu finca entera, en el bolsillo." },
+        { "type": "text", "style": "002", "text": "Tu finca entera,\nen el bolsillo", "settings": { "font-family": "Oswald", "font-size": "8vw", "color": "#ffffff", "text-align": "center" } }
       ]
     },
     {
-      "comment": "4.8s — cultivos",
-      "duration": 5.0,
+      "duration": -1,
       "background-color": "#1b4d1e",
       "transition": { "style": "fade", "duration": 0.3 },
       "elements": [
         { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Un solo sistema para todos tus cultivos: cardamomo, café, tomate y vainilla." },
-        { "type": "text", "style": "001", "text": "Cardamomo · Café\nTomate · Vainilla", "settings": { "font-family": "Oswald", "font-size": "6.5vw", "color": "#ffffff", "text-align": "center", "line-height": "1.8" } }
+        { "type": "text", "style": "002", "text": "Un solo sistema\npara todos tus cultivos", "settings": { "font-family": "Oswald", "font-size": "6.5vw", "color": "#ffffff", "text-align": "center" } }
       ]
     },
     {
-      "comment": "9.8s — registro por voz/foto (muestra la app)",
-      "duration": 6.4,
+      "duration": -1,
+      "background-color": "#1b4d1e",
       "transition": { "style": "fade", "duration": 0.3 },
       "elements": [
-        { "type": "video", "src": "https://raw.githubusercontent.com/pduchez/finca-elsalto-campo/media/reel.mp4", "volume": 0 },
-        { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Tu gente registra con la voz y una foto. Cuatro toques y listo." }
+        { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Tu gente registra con la voz y una foto. Cuatro toques y listo." },
+        { "type": "text", "style": "002", "text": "Registro por voz\ny foto", "settings": { "font-family": "Oswald", "font-size": "7vw", "color": "#ffffff", "text-align": "center" } }
       ]
     },
     {
-      "comment": "16.2s — sin senal",
-      "duration": 5.5,
+      "duration": -1,
       "background-color": "#1b4d1e",
       "transition": { "style": "fade", "duration": 0.3 },
       "elements": [
         { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "¿Sin señal? Igual funciona. Se envía solo cuando vuelve el internet." },
-        { "type": "text", "style": "002", "text": "Sin señal,\nigual funciona", "settings": { "font-family": "Oswald", "font-size": "7vw", "color": "#ffffff", "text-align": "center", "line-height": "1.5" } }
+        { "type": "text", "style": "002", "text": "Sin señal,\nigual funciona", "settings": { "font-family": "Oswald", "font-size": "7vw", "color": "#ffffff", "text-align": "center" } }
       ]
     },
     {
-      "comment": "21.7s — IA",
-      "duration": 5.5,
+      "duration": -1,
       "background-color": "#1b4d1e",
       "transition": { "style": "fade", "duration": 0.3 },
       "elements": [
         { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Y la inteligencia artificial lo ordena todo por vos." },
-        { "type": "text", "style": "002", "text": "La IA lo ordena\ntodo por vos", "settings": { "font-family": "Oswald", "font-size": "7vw", "color": "#ffffff", "text-align": "center", "line-height": "1.5" } }
+        { "type": "text", "style": "002", "text": "La IA lo ordena\ntodo por vos", "settings": { "font-family": "Oswald", "font-size": "7vw", "color": "#ffffff", "text-align": "center" } }
       ]
     },
     {
-      "comment": "27.2s — briefing",
-      "duration": 6.0,
+      "duration": -1,
       "background-color": "#1b4d1e",
       "transition": { "style": "fade", "duration": 0.3 },
       "elements": [
         { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Vos abrís el panel a un briefing claro, cada mañana." },
-        { "type": "text", "style": "002", "text": "Briefing claro,\ncada mañana", "settings": { "font-family": "Oswald", "font-size": "7vw", "color": "#ffffff", "text-align": "center", "line-height": "1.5" } }
+        { "type": "text", "style": "002", "text": "Un briefing claro,\ncada mañana", "settings": { "font-family": "Oswald", "font-size": "7vw", "color": "#ffffff", "text-align": "center" } }
       ]
     },
     {
-      "comment": "33.2s — trazabilidad",
-      "duration": 5.5,
+      "duration": -1,
       "background-color": "#1b4d1e",
       "transition": { "style": "fade", "duration": 0.3 },
       "elements": [
         { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Trazabilidad con GPS y foto, lista para certificar orgánico." },
-        { "type": "text", "style": "001", "text": "Trazabilidad\nGPS + foto\ncertificación orgánica", "settings": { "font-family": "Oswald", "font-size": "5.8vw", "color": "#ffffff", "text-align": "center", "line-height": "1.8" } }
+        { "type": "text", "style": "002", "text": "Trazabilidad para\ncertificar orgánico", "settings": { "font-family": "Oswald", "font-size": "6.5vw", "color": "#ffffff", "text-align": "center" } }
       ]
     },
     {
-      "comment": "38.7s — costos",
-      "duration": 5.5,
+      "duration": -1,
       "background-color": "#1b4d1e",
       "transition": { "style": "fade", "duration": 0.3 },
       "elements": [
         { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Costos por área, al instante. Cada jornal, contado." },
-        { "type": "text", "style": "002", "text": "Costos por área,\nal instante", "settings": { "font-family": "Oswald", "font-size": "7vw", "color": "#ffffff", "text-align": "center", "line-height": "1.5" } }
+        { "type": "text", "style": "002", "text": "Costos por área,\nal instante", "settings": { "font-family": "Oswald", "font-size": "7vw", "color": "#ffffff", "text-align": "center" } }
       ]
     },
     {
-      "comment": "44.2s — cierre / CTA",
-      "duration": 5.0,
+      "duration": -1,
       "background-color": "#1b4d1e",
       "elements": [
         { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Una app hecha para el campo. Yo se la construyo, igual que esta." },
-        { "type": "text", "style": "002", "text": "Hecha para el campo.\nYo se la construyo.", "settings": { "font-family": "Oswald", "font-size": "6.5vw", "color": "#ffffff", "text-align": "center", "line-height": "1.6" } }
+        { "type": "text", "style": "002", "text": "Hecha para el campo.\nYo se la construyo.", "settings": { "font-family": "Oswald", "font-size": "6.5vw", "color": "#ffffff", "text-align": "center" } }
       ]
     }
   ]
