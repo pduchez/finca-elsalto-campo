@@ -10,13 +10,13 @@
         { "type": "audio", "src": "https://raw.githubusercontent.com/pduchez/finca-elsalto-campo/media/music.mp3", "duration": -2, "volume": 0.12, "fade-out": 3 },
         { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 0.6, "text": "Toda su finca, en el bolsillo." },
         { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 5, "text": "Un solo sistema para todos sus cultivos: cardamomo, café, tomate y vainilla." },
-        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 13.6, "text": "Su gente registra con la voz y una foto. Cuatro toques, y listo." },
-        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 18.8, "text": "¿Sin internet? Funciona igual. Se envía sola cuando regresa la señal." },
-        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 25.3, "text": "La inteligencia artificial lo ordena todo por usted." },
-        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 29.5, "text": "Usted abre el panel a un resumen claro, cada mañana." },
-        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 37.3, "text": "Trazabilidad con GPS y foto, lista para certificar." },
-        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 41.5, "text": "Costos por área, al instante. Cada jornal, contado." },
-        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 46.2, "text": "FincApp. Hecho para el campo. Yo la construyo para su finca." }
+        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 10, "text": "Su gente registra con la voz y una foto. Cuatro toques, y listo." },
+        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 15.2, "text": "¿Sin internet? Funciona igual. Se envía sola cuando regresa la señal." },
+        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 21.7, "text": "La inteligencia artificial lo ordena todo por usted." },
+        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 25.9, "text": "Usted abre el panel a un resumen claro, cada mañana." },
+        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 33.7, "text": "Trazabilidad con GPS y foto, lista para certificar." },
+        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 37.9, "text": "Costos por área, al instante. Cada jornal, contado." },
+        { "type": "voice", "model": "azure", "voice": "es-MX-DaliaNeural", "start": 42.6, "text": "FincApp. Hecho para el campo. Yo la construyo para su finca." }
       ]
     }
   ]
