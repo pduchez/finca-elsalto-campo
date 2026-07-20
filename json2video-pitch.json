@@ -1,7 +1,10 @@
 {
-  "comment": "Pitch de ventas — voz en off (TTS Azure, es-MX-Jorge, formal). Sin musica todavia (pendiente MP3 libre de derechos).",
+  "comment": "Pitch de ventas — voz en off (TTS Azure, es-MX-Jorge, formal) + musica libre de derechos (dominio publico, Mozart KV525) a volumen bajo.",
   "resolution": "instagram-story",
   "quality": "high",
+  "elements": [
+    { "type": "audio", "src": "https://assets.json2video.com/assets/audios/mozart-kv525.mp3", "duration": -2, "volume": 0.12, "fade-out": 2 }
+  ],
   "scenes": [
     {
       "comment": "1) Intro",
