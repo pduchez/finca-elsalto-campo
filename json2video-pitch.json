@@ -1,0 +1,60 @@
+{
+  "comment": "Pitch de ventas — voz en off (TTS Azure, es-MX-Jorge, formal). Sin musica todavia (pendiente MP3 libre de derechos).",
+  "resolution": "instagram-story",
+  "quality": "high",
+  "scenes": [
+    {
+      "comment": "1) Intro",
+      "duration": -1,
+      "background-color": "#1b4d1e",
+      "transition": { "style": "fade", "duration": 0.4 },
+      "elements": [
+        { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Presentamos una solución digital creada para el campo." },
+        {
+          "type": "text",
+          "style": "002",
+          "text": "El campo, digitalizado",
+          "settings": { "font-family": "Oswald", "font-size": "8vw", "color": "#ffffff", "text-align": "center", "line-height": "1.6" }
+        }
+      ]
+    },
+    {
+      "comment": "2) Video con voz en off; audio original del video silenciado",
+      "duration": -1,
+      "transition": { "style": "fade", "duration": 0.4 },
+      "elements": [
+        { "type": "video", "src": "https://raw.githubusercontent.com/pduchez/finca-elsalto-campo/media/reel.mp4", "volume": 0 },
+        { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Una aplicación que funciona sin señal, donde su personal registra por voz y fotografía cada labor de la finca." }
+      ]
+    },
+    {
+      "comment": "3) Funciones",
+      "duration": -1,
+      "background-color": "#1b4d1e",
+      "transition": { "style": "fade", "duration": 0.4 },
+      "elements": [
+        { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Asistencia con fotografía, tareas por destajo y la planilla catorcenal, listas en un instante. Menos papeles, menos errores y control total desde el teléfono." },
+        {
+          "type": "text",
+          "style": "001",
+          "text": "Asistencia\nDestajo\nPlanilla",
+          "settings": { "font-family": "Oswald", "font-size": "6vw", "color": "#ffffff", "text-align": "center", "line-height": "2.0" }
+        }
+      ]
+    },
+    {
+      "comment": "4) Cierre / llamado a la accion",
+      "duration": -1,
+      "background-color": "#1b4d1e",
+      "elements": [
+        { "type": "voice", "model": "azure", "voice": "es-MX-JorgeNeural", "text": "Ya funciona en Finca El Salto. Lleve esta herramienta a su finca. Contáctenos y digitalice su producción." },
+        {
+          "type": "text",
+          "style": "002",
+          "text": "Digitalice su finca\nContáctenos",
+          "settings": { "font-family": "Oswald", "font-size": "6.5vw", "color": "#ffffff", "text-align": "center", "line-height": "1.6" }
+        }
+      ]
+    }
+  ]
+}
