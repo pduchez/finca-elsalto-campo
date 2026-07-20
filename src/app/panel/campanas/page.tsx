@@ -1,17 +1,25 @@
-import { obtenerResumen } from "@/lib/panel/datos";
+import { obtenerResumen, resolverRango } from "@/lib/panel/datos";
 import { Barra, Chip, Tarjeta, SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
+import RangoFechas from "@/components/panel/RangoFechas";
 
 export const dynamic = "force-dynamic";
 
-export default async function CampanasPage() {
-  const { configurado, campanas } = await obtenerResumen();
+export default async function CampanasPage({
+  searchParams,
+}: {
+  searchParams?: { desde?: string; hasta?: string };
+}) {
+  const { desde, hasta } = resolverRango(searchParams);
+  const { configurado, campanas, rango } = await obtenerResumen(desde, hasta);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-extrabold text-finca-900">Campañas / cobertura</h1>
-        <p className="text-finca-600">Área trabajada por actividad (últimos 21 días)</p>
+        <p className="text-finca-600">Área trabajada por actividad en el período seleccionado</p>
       </div>
+
+      <RangoFechas desde={rango.desde} hasta={rango.hasta} />
 
       {!configurado && <AvisoSinConexion />}
 
