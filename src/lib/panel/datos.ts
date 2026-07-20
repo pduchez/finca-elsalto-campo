@@ -62,6 +62,7 @@ export interface FotoPanel {
 }
 export interface ResumenPanel {
   configurado: boolean;
+  rango: { desde: string; hasta: string };
   hoy: {
     fecha: string;
     registros: number;
@@ -85,9 +86,17 @@ export interface ResumenPanel {
   fotos: FotoPanel[];
 }
 
-function vacio(): ResumenPanel {
+/** Resuelve el rango pedido (o el de por defecto: últimos 30 días). */
+export function resolverRango(sp?: { desde?: string; hasta?: string }): { desde: string; hasta: string } {
+  const hasta = sp?.hasta && /^\d{4}-\d{2}-\d{2}$/.test(sp.hasta) ? sp.hasta : iso(new Date());
+  const desde = sp?.desde && /^\d{4}-\d{2}-\d{2}$/.test(sp.desde) ? sp.desde : haceDias(30);
+  return desde <= hasta ? { desde, hasta } : { desde: hasta, hasta: desde };
+}
+
+function vacio(desde: string, hasta: string): ResumenPanel {
   return {
     configurado: false,
+    rango: { desde, hasta },
     hoy: { fecha: iso(new Date()), registros: 0, presentes: 0, verificados: 0, areas: [] },
     campanas: [],
     cosecha: { totalQq: 0, metaTotalQq: 0, pctTotal: 0, ultimo: null, porArea: [], porSemana: [] },
@@ -96,12 +105,11 @@ function vacio(): ResumenPanel {
   };
 }
 
-export async function obtenerResumen(): Promise<ResumenPanel> {
-  if (!panelConfigurado()) return vacio();
+export async function obtenerResumen(desde: string, hasta: string): Promise<ResumenPanel> {
+  if (!panelConfigurado()) return vacio(desde, hasta);
   const hoy = iso(new Date());
   try {
     const supa = crearClienteServicio();
-    const desde = haceDias(120);
 
     // Cada consulta es independiente: si una falla (p. ej. falta una columna
     // por una migración pendiente), el resto del panel igual se muestra.
@@ -113,19 +121,23 @@ export async function obtenerResumen(): Promise<ResumenPanel> {
         return [];
       }
     };
+    const CAMPOS = "id,fecha,creado_en,area_id,actividad_id,cantidad,unidad,jornales_usados,problema_detectado,descripcion_problema,observaciones,fotos";
 
-    const [areas, detalles, actividades, registros, asistencia] = await Promise.all([
+    // `registros` = los del período elegido (reportes). `regHoy` = siempre hoy.
+    const [areas, detalles, actividades, registros, regHoy, asistencia] = await Promise.all([
       sel(supa.from("areas").select("id,nombre,activa")),
       sel(supa.from("areas_detalle").select("area_id,manzanas_sembradas,meta_produccion_qq")),
       sel(supa.from("actividades").select("id,codigo,nombre,unidad_medida")),
       sel(
         supa
           .from("registros")
-          .select("id,fecha,creado_en,area_id,actividad_id,cantidad,unidad,jornales_usados,problema_detectado,descripcion_problema,observaciones,fotos")
+          .select(CAMPOS)
           .gte("fecha", desde)
+          .lte("fecha", hasta)
           .order("creado_en", { ascending: false })
-          .limit(3000),
+          .limit(5000),
       ),
+      sel(supa.from("registros").select(CAMPOS).eq("fecha", hoy)),
       sel(supa.from("asistencia").select("trabajador_id,presente,verificado_rostro").eq("fecha", hoy)),
     ]);
 
@@ -141,8 +153,7 @@ export async function obtenerResumen(): Promise<ResumenPanel> {
     }
     const mzTotal = [...mzSembrada.values()].reduce((s, x) => s + x, 0);
 
-    // ---- HOY ----
-    const regHoy = registros.filter((r: any) => r.fecha === hoy);
+    // ---- HOY (independiente del rango) ----
     const areasHoy = new Map<string, Set<string>>();
     for (const r of regHoy as any[]) {
       const an = nombreArea.get(r.area_id) ?? "—";
@@ -153,13 +164,10 @@ export async function obtenerResumen(): Promise<ResumenPanel> {
     const presentes = asistencia.filter((a: any) => a.presente).length;
     const verificados = asistencia.filter((a: any) => a.presente && a.verificado_rostro).length;
 
-    // ---- CAMPAÑAS (últimos 21 días) ----
-    const ventana = haceDias(21);
+    // ---- CAMPAÑAS (dentro del período elegido) ----
     const campanas: Campana[] = [];
     for (const codigo of CODIGOS_CAMPANA) {
-      const regs = registros.filter(
-        (r: any) => r.fecha >= ventana && act.get(r.actividad_id)?.codigo === codigo,
-      );
+      const regs = registros.filter((r: any) => act.get(r.actividad_id)?.codigo === codigo);
       if (regs.length === 0) continue;
       const areasHechasIds = new Set<string>(regs.map((r: any) => r.area_id).filter(Boolean));
       let mzHechas = 0;
@@ -257,6 +265,7 @@ export async function obtenerResumen(): Promise<ResumenPanel> {
 
     return {
       configurado: true,
+      rango: { desde, hasta },
       hoy: {
         fecha: hoy,
         registros: regHoy.length,
@@ -279,6 +288,6 @@ export async function obtenerResumen(): Promise<ResumenPanel> {
       fotos,
     };
   } catch {
-    return { ...vacio(), configurado: true };
+    return { ...vacio(desde, hasta), configurado: true };
   }
 }

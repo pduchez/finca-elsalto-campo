@@ -1,10 +1,16 @@
-import { obtenerResumen } from "@/lib/panel/datos";
+import { obtenerResumen, resolverRango } from "@/lib/panel/datos";
 import { Cifra, Barra, Tarjeta, TituloReporte, SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
+import RangoFechas from "@/components/panel/RangoFechas";
 
 export const dynamic = "force-dynamic"; // siempre datos frescos
 
-export default async function ResumenPanel() {
-  const r = await obtenerResumen();
+export default async function ResumenPanel({
+  searchParams,
+}: {
+  searchParams?: { desde?: string; hasta?: string };
+}) {
+  const { desde, hasta } = resolverRango(searchParams);
+  const r = await obtenerResumen(desde, hasta);
 
   return (
     <div className="flex flex-col gap-6">
@@ -12,6 +18,8 @@ export default async function ResumenPanel() {
         <h1 className="text-2xl font-extrabold text-finca-900">Resumen de la finca</h1>
         <p className="text-finca-600">Hoy · {r.hoy.fecha}</p>
       </div>
+
+      <RangoFechas desde={r.rango.desde} hasta={r.rango.hasta} />
 
       {!r.configurado && <AvisoSinConexion />}
 
@@ -41,7 +49,7 @@ export default async function ResumenPanel() {
       <Tarjeta>
         <TituloReporte
           titulo="Campañas en curso"
-          sub="Avance de área en los últimos 21 días"
+          sub="Avance de área en el período seleccionado"
           verMas={{ href: "/panel/campanas", texto: "Ver detalle" }}
         />
         {r.campanas.length === 0 ? (

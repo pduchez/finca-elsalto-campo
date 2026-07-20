@@ -1,10 +1,16 @@
-import { obtenerResumen } from "@/lib/panel/datos";
+import { obtenerResumen, resolverRango } from "@/lib/panel/datos";
 import { SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
+import RangoFechas from "@/components/panel/RangoFechas";
 
 export const dynamic = "force-dynamic";
 
-export default async function FotosPage() {
-  const { configurado, fotos } = await obtenerResumen();
+export default async function FotosPage({
+  searchParams,
+}: {
+  searchParams?: { desde?: string; hasta?: string };
+}) {
+  const { desde, hasta } = resolverRango(searchParams);
+  const { configurado, fotos, rango } = await obtenerResumen(desde, hasta);
 
   return (
     <div className="flex flex-col gap-6">
@@ -12,6 +18,8 @@ export default async function FotosPage() {
         <h1 className="text-2xl font-extrabold text-finca-900">Estado de la planta</h1>
         <p className="text-finca-600">Fotos recientes del campo, por área</p>
       </div>
+
+      <RangoFechas desde={rango.desde} hasta={rango.hasta} />
 
       {!configurado && <AvisoSinConexion />}
 

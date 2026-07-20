@@ -1,11 +1,17 @@
-import { obtenerResumen } from "@/lib/panel/datos";
+import { obtenerResumen, resolverRango } from "@/lib/panel/datos";
 import { Cifra, Barra, Tarjeta, TituloReporte, SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
 import IngresoEstimado from "@/components/panel/IngresoEstimado";
+import RangoFechas from "@/components/panel/RangoFechas";
 
 export const dynamic = "force-dynamic";
 
-export default async function CosechaPage() {
-  const { configurado, cosecha } = await obtenerResumen();
+export default async function CosechaPage({
+  searchParams,
+}: {
+  searchParams?: { desde?: string; hasta?: string };
+}) {
+  const { desde, hasta } = resolverRango(searchParams);
+  const { configurado, cosecha, rango } = await obtenerResumen(desde, hasta);
   const maxSemana = Math.max(1, ...cosecha.porSemana.map((s) => s.qq));
 
   return (
@@ -14,6 +20,8 @@ export default async function CosechaPage() {
         <h1 className="text-2xl font-extrabold text-finca-900">Cosecha</h1>
         <p className="text-finca-600">Quintales de cardamomo cortados</p>
       </div>
+
+      <RangoFechas desde={rango.desde} hasta={rango.hasta} />
 
       {!configurado && <AvisoSinConexion />}
 
