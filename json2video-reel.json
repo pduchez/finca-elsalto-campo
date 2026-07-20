@@ -1,0 +1,77 @@
+{
+  "comment": "Reel Finca El Salto — intro + tu video (reel.mp4) + funciones + cierre. Edita textos, colores y tiempos a gusto.",
+  "resolution": "instagram-story",
+  "quality": "high",
+  "scenes": [
+    {
+      "comment": "1) Intro con el titulo",
+      "duration": 2.5,
+      "background-color": "#1b4d1e",
+      "transition": { "style": "fade", "duration": 0.4 },
+      "elements": [
+        {
+          "type": "text",
+          "style": "002",
+          "text": "Finca El Salto\nEl campo, en tu telefono",
+          "settings": {
+            "font-family": "Oswald",
+            "font-size": "8vw",
+            "color": "#ffffff",
+            "text-align": "center",
+            "line-height": "1.6"
+          }
+        }
+      ]
+    },
+    {
+      "comment": "2) Tu video. duration -1 = dura lo que dure el video.",
+      "duration": -1,
+      "transition": { "style": "fade", "duration": 0.4 },
+      "elements": [
+        {
+          "type": "video",
+          "src": "https://raw.githubusercontent.com/pduchez/finca-elsalto-campo/media/reel.mp4"
+        }
+      ]
+    },
+    {
+      "comment": "3) Placa de funciones",
+      "duration": 3.5,
+      "background-color": "#1b4d1e",
+      "transition": { "style": "fade", "duration": 0.4 },
+      "elements": [
+        {
+          "type": "text",
+          "style": "001",
+          "text": "Registra por voz\nFunciona sin senal\nPlanilla en un toque",
+          "settings": {
+            "font-family": "Oswald",
+            "font-size": "6vw",
+            "color": "#ffffff",
+            "text-align": "center",
+            "line-height": "2.0"
+          }
+        }
+      ]
+    },
+    {
+      "comment": "4) Cierre con la web",
+      "duration": 3.5,
+      "background-color": "#1b4d1e",
+      "elements": [
+        {
+          "type": "text",
+          "style": "002",
+          "text": "Finca El Salto\nfinca-elsalto-campo.vercel.app",
+          "settings": {
+            "font-family": "Oswald",
+            "font-size": "6vw",
+            "color": "#ffffff",
+            "text-align": "center",
+            "line-height": "1.8"
+          }
+        }
+      ]
+    }
+  ]
+}
