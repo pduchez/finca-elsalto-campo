@@ -1,178 +1,144 @@
-"use client";
+import { obtenerResumen } from "@/lib/panel/datos";
+import { Cifra, Barra, Tarjeta, TituloReporte, SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
 
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
-import { hoyISO, AREAS } from "@/lib/db/seed";
-import { cargarDatosEjemplo } from "@/lib/db/demo";
+export const dynamic = "force-dynamic"; // siempre datos frescos
 
-// Briefing diario: qué se hizo, dónde, jornales, insumos, alertas.
-export default function BriefingPage() {
-  const fecha = hoyISO();
-  const registros = useLiveQuery(
-    () => db().registros.where("fecha").equals(fecha).toArray(),
-    [fecha],
-    [],
-  );
-  const asistencia = useLiveQuery(
-    () => db().asistencia.where("fecha").equals(fecha).toArray(),
-    [fecha],
-    [],
-  );
-  const destajo = useLiveQuery(
-    () => db().tareas_destajo.where("fecha").equals(fecha).toArray(),
-    [fecha],
-    [],
-  );
-
-  const presentes = asistencia.filter((a) => a.presente).length;
-  const jornalesReportados = registros.reduce(
-    (s, r) => s + (r.jornales_usados ?? 0),
-    0,
-  );
-  const areasConActividad = new Set(
-    registros.map((r) => r.area_nombre).filter(Boolean),
-  );
-  const areasSinActividad = AREAS.filter(
-    (a) => a.nombre !== "El Vivero" && !areasConActividad.has(a.nombre),
-  );
-
-  // Alertas
-  const problemas = registros.filter((r) => r.problema_detectado);
-  const insumosAgotados = registros.filter((r) => r.insumo_agotado);
-  const paraRevisar = registros.filter(
-    (r) => r.audio_transcripcion == null && r.audioBlob != null,
-  );
+export default async function ResumenPanel() {
+  const r = await obtenerResumen();
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-finca-900">
-          Briefing de hoy
-        </h1>
-        <button
-          onClick={() => void cargarDatosEjemplo()}
-          className="bg-white text-finca-600 border border-finca-200 rounded-lg px-4 py-2 font-semibold"
-          title="Agrega registros de ejemplo para previsualizar el panel"
-        >
-          + Datos de ejemplo
-        </button>
+      <div>
+        <h1 className="text-2xl font-extrabold text-finca-900">Resumen de la finca</h1>
+        <p className="text-finca-600">Hoy · {r.hoy.fecha}</p>
       </div>
 
-      {/* Cifras */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Cifra n={registros.length} etiqueta="Registros" />
-        <Cifra n={presentes} etiqueta="En planilla" />
-        <Cifra n={jornalesReportados} etiqueta="Jornales reportados" />
-        <Cifra n={areasConActividad.size} etiqueta="Áreas trabajadas" />
-      </div>
+      {!r.configurado && <AvisoSinConexion />}
 
-      {/* Alertas */}
-      <section>
-        <h2 className="text-xl font-extrabold text-finca-900 mb-2">Alertas</h2>
-        <div className="flex flex-col gap-2">
-          {problemas.map((r) => (
-            <Alerta key={r.id} color="alerta">
-              🐛 Problema en <b>{r.area_nombre}</b>:{" "}
-              {r.descripcion_problema ?? "ver registro"}
-            </Alerta>
-          ))}
-          {insumosAgotados.map((r) => (
-            <Alerta key={r.id} color="pendiente">
-              📦 Insumo por agotarse (reportado en <b>{r.area_nombre}</b>)
-            </Alerta>
-          ))}
-          {areasSinActividad.length > 0 && (
-            <Alerta color="pendiente">
-              🗺️ Sin actividad hoy:{" "}
-              {areasSinActividad.map((a) => a.nombre).join(", ")}
-            </Alerta>
-          )}
-          {paraRevisar.length > 0 && (
-            <Alerta color="pendiente">
-              🎧 {paraRevisar.length} audio(s) pendientes de procesar
-            </Alerta>
-          )}
-          {problemas.length === 0 &&
-            insumosAgotados.length === 0 &&
-            areasSinActividad.length === 0 &&
-            paraRevisar.length === 0 && (
-              <p className="text-finca-600">Sin alertas. Todo en orden.</p>
-            )}
+      {/* ------- Lo de HOY ------- */}
+      <Tarjeta>
+        <TituloReporte titulo="Hoy en el campo" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Cifra valor={r.hoy.registros} etiqueta="Registros" />
+          <Cifra valor={r.hoy.presentes} etiqueta="Presentes" />
+          <Cifra valor={`${r.hoy.verificados}/${r.hoy.presentes}`} etiqueta="Verificados por rostro" />
+          <Cifra valor={r.hoy.areas.length} etiqueta="Áreas trabajadas" />
         </div>
-      </section>
-
-      {/* Qué se hizo */}
-      <section>
-        <h2 className="text-xl font-extrabold text-finca-900 mb-2">
-          Qué se hizo
-        </h2>
-        {registros.length === 0 ? (
-          <p className="text-finca-600">Aún no hay registros hoy.</p>
+        {r.hoy.areas.length > 0 ? (
+          <ul className="mt-3 flex flex-col gap-1 text-finca-800 text-sm">
+            {r.hoy.areas.map((a) => (
+              <li key={a.nombre}>
+                <b>{a.nombre}</b>: {a.actividades.join(", ")}
+              </li>
+            ))}
+          </ul>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left bg-white rounded-xl overflow-hidden">
-              <thead className="bg-finca-100 text-finca-800">
-                <tr>
-                  <Th>Área</Th>
-                  <Th>Actividad</Th>
-                  <Th>Cantidad</Th>
-                  <Th>Jornales</Th>
-                  <Th>Nota</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {registros.map((r) => (
-                  <tr key={r.id} className="border-t border-finca-100">
-                    <Td>{r.area_nombre}</Td>
-                    <Td>{r.actividad_nombre}</Td>
-                    <Td>
-                      {r.cantidad != null
-                        ? `${r.cantidad} ${r.unidad ?? ""}`
-                        : "—"}
-                    </Td>
-                    <Td>{r.jornales_usados ?? "—"}</Td>
-                    <Td>{r.observaciones ?? "—"}</Td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <p className="mt-3 text-finca-500 text-sm">Aún no hay actividad registrada hoy.</p>
+        )}
+      </Tarjeta>
+
+      {/* ------- Campañas en curso ------- */}
+      <Tarjeta>
+        <TituloReporte
+          titulo="Campañas en curso"
+          sub="Avance de área en los últimos 21 días"
+          verMas={{ href: "/panel/campanas", texto: "Ver detalle" }}
+        />
+        {r.campanas.length === 0 ? (
+          <SinDatos>No hay campañas activas registradas.</SinDatos>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {r.campanas.map((c) => (
+              <div key={c.codigo}>
+                <div className="flex items-baseline justify-between">
+                  <span className="font-bold text-finca-900">{c.nombre}</span>
+                  <span className="text-finca-700 font-extrabold">
+                    {c.mzHechas} / {c.mzTotal} mz
+                  </span>
+                </div>
+                <div className="mt-1">
+                  <Barra pct={c.pct} />
+                </div>
+                <p className="text-xs text-finca-600 mt-1">
+                  {c.pct}% cubierto · falta {Math.max(0, Math.round((c.mzTotal - c.mzHechas) * 100) / 100)} mz
+                  {c.areasFaltan.length > 0 && ` (${c.areasFaltan.slice(0, 4).join(", ")}${c.areasFaltan.length > 4 ? "…" : ""})`}
+                </p>
+              </div>
+            ))}
           </div>
         )}
-      </section>
+      </Tarjeta>
+
+      {/* ------- Cosecha ------- */}
+      <Tarjeta>
+        <TituloReporte
+          titulo="Cosecha"
+          sub="Quintales cortados (de aquí vienen los ingresos)"
+          verMas={{ href: "/panel/cosecha", texto: "Ver detalle" }}
+        />
+        <div className="grid grid-cols-3 gap-3">
+          <Cifra valor={`${r.cosecha.totalQq} qq`} etiqueta="Cortado" destacado />
+          <Cifra valor={r.cosecha.metaTotalQq ? `${r.cosecha.metaTotalQq} qq` : "—"} etiqueta="Meta total" />
+          <Cifra valor={r.cosecha.metaTotalQq ? `${r.cosecha.pctTotal}%` : "—"} etiqueta="De la meta" />
+        </div>
+        {r.cosecha.metaTotalQq > 0 && (
+          <div className="mt-3">
+            <Barra pct={r.cosecha.pctTotal} tono="cosecha" />
+          </div>
+        )}
+        {r.cosecha.ultimo && (
+          <p className="text-sm text-finca-600 mt-3">
+            Último corte: <b>{r.cosecha.ultimo.qq} qq</b> en {r.cosecha.ultimo.area} ({r.cosecha.ultimo.fecha})
+          </p>
+        )}
+      </Tarjeta>
+
+      {/* ------- Alertas ------- */}
+      <Tarjeta>
+        <TituloReporte titulo="Alertas" />
+        <div className="flex flex-col gap-2">
+          {r.alertas.problemas.map((p, i) => (
+            <div key={i} className="rounded-lg bg-alerta/10 border border-alerta/30 text-alerta px-4 py-2 text-sm font-semibold">
+              🐛 {p.area}: {p.descripcion} <span className="opacity-70">({p.fecha})</span>
+            </div>
+          ))}
+          {r.alertas.areasSinActividad.length > 0 && (
+            <div className="rounded-lg bg-pendiente/10 border border-pendiente/30 text-pendiente px-4 py-2 text-sm font-semibold">
+              🗺️ Sin actividad reciente:{" "}
+              {r.alertas.areasSinActividad
+                .map((a) => `${a.area}${a.dias != null ? ` (${a.dias} d)` : " (nunca)"}`)
+                .join(", ")}
+            </div>
+          )}
+          {r.alertas.problemas.length === 0 && r.alertas.areasSinActividad.length === 0 && (
+            <SinDatos>Sin alertas. Todo en orden.</SinDatos>
+          )}
+        </div>
+      </Tarjeta>
+
+      {/* ------- Fotos ------- */}
+      <Tarjeta>
+        <TituloReporte
+          titulo="Estado de la planta"
+          sub="Fotos recientes del campo"
+          verMas={{ href: "/panel/fotos", texto: "Ver galería" }}
+        />
+        {r.fotos.length === 0 ? (
+          <SinDatos>Aún no hay fotos sincronizadas.</SinDatos>
+        ) : (
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {r.fotos.slice(0, 8).map((f, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={f.url}
+                alt={`${f.area} · ${f.actividad}`}
+                className="w-full h-24 object-cover rounded-xl border border-finca-100"
+              />
+            ))}
+          </div>
+        )}
+      </Tarjeta>
     </div>
   );
-}
-
-function Cifra({ n, etiqueta }: { n: number; etiqueta: string }) {
-  return (
-    <div className="bg-white rounded-xl p-4 text-center border border-finca-100">
-      <div className="text-3xl font-extrabold text-finca-700">{n}</div>
-      <div className="text-sm text-finca-600">{etiqueta}</div>
-    </div>
-  );
-}
-
-function Alerta({
-  children,
-  color,
-}: {
-  children: React.ReactNode;
-  color: "alerta" | "pendiente";
-}) {
-  const cls =
-    color === "alerta"
-      ? "bg-alerta/10 border-alerta/40 text-alerta"
-      : "bg-pendiente/10 border-pendiente/40 text-pendiente";
-  return (
-    <div className={`rounded-lg border px-4 py-2 font-semibold ${cls}`}>
-      {children}
-    </div>
-  );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="px-3 py-2 text-sm font-bold">{children}</th>;
-}
-function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-3 py-2 text-finca-800">{children}</td>;
 }
