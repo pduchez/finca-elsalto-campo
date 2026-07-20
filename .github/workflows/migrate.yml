@@ -1,0 +1,60 @@
+name: Migraciones Supabase
+
+# Corre las migraciones SQL contra la base de Supabase.
+# Necesita el secret SUPABASE_DB_URL (la "Connection string" de
+# Supabase → Project Settings → Database → Connection string → URI,
+# usando el puerto 6543 del pooler o el 5432 directo).
+#
+# Todas las migraciones son idempotentes (IF NOT EXISTS / ON CONFLICT),
+# así que se pueden correr varias veces sin romper nada.
+
+on:
+  workflow_dispatch:
+    inputs:
+      archivos:
+        description: "Migraciones a correr (glob dentro de supabase/)"
+        required: false
+        default: "migracion-*.sql"
+
+jobs:
+  migrar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar psql
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+
+      - name: Correr migraciones
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          GLOB: ${{ github.event.inputs.archivos }}
+        run: |
+          if [ -z "$DB_URL" ]; then
+            echo "::error::Falta el secret SUPABASE_DB_URL. Agrégalo en Settings → Secrets → Actions."
+            exit 1
+          fi
+          shopt -s nullglob
+          archivos=(supabase/${GLOB:-migracion-*.sql})
+          if [ ${#archivos[@]} -eq 0 ]; then
+            echo "::error::No se encontró ninguna migración con el patrón '$GLOB'."
+            exit 1
+          fi
+          for f in "${archivos[@]}"; do
+            echo "==================================================="
+            echo ">> Aplicando $f"
+            echo "==================================================="
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
+          done
+          echo ""
+          echo "✅ Migraciones aplicadas."
+
+      - name: Verificar columnas nuevas
+        if: success()
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          psql "$DB_URL" -c "select table_name, column_name from information_schema.columns where (table_name='asistencia' and column_name in ('verificado_rostro','similitud')) or (table_name='trabajadores' and column_name='face_descriptor') or (table_name='areas_detalle' and column_name='fotos') order by table_name, column_name;"
+          psql "$DB_URL" -c "select count(*) as usuarios from usuarios;"
