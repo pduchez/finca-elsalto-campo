@@ -26,7 +26,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Datos inválidos" }, { status: 400 });
   }
   const username = (body.username ?? "").trim();
-  const password = body.password ?? "";
+  // Recortamos espacios que el teclado del celular suele agregar al inicio/fin.
+  const password = (body.password ?? "").trim();
   if (!username || !password) {
     return NextResponse.json(
       { ok: false, error: "Escribí usuario y contraseña." },
