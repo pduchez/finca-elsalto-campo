@@ -8,6 +8,10 @@ import withPWAInit from "@ducanh2912/next-pwa";
  *   pantallas funciona sin señal.
  * - Runtime caching pensado para el Android de gama baja de Emerson: la app
  *   (shell), el plan del día y los protocolos deben quedar disponibles offline.
+ * - Al publicar una versión nueva, el Service Worker toma el control de una
+ *   (`skipWaiting` + `clientsClaim`) y borra la caché vieja
+ *   (`cleanupOutdatedCaches`), para que un teléfono con la versión anterior
+ *   guardada no quede en pantalla en blanco al actualizar.
  */
 const withPWA = withPWAInit({
   dest: "public",
@@ -18,6 +22,9 @@ const withPWA = withPWAInit({
   reloadOnOnline: true,
   workboxOptions: {
     disableDevLogs: true,
+    skipWaiting: true,
+    clientsClaim: true,
+    cleanupOutdatedCaches: true,
   },
 });
 

@@ -55,8 +55,10 @@ export default function LoginPage() {
             <span className="font-bold text-finca-800">Usuario</span>
             <input
               className="entrada text-left"
+              name="username"
               autoCapitalize="none"
               autoCorrect="off"
+              autoComplete="username"
               spellCheck={false}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -68,6 +70,11 @@ export default function LoginPage() {
             <input
               className="entrada text-left"
               type="password"
+              name="password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="current-password"
+              spellCheck={false}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
