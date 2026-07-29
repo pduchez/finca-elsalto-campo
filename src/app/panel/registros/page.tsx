@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { resolverRango } from "@/lib/panel/datos";
 import { obtenerRegistros, listarActividades } from "@/lib/panel/detalle";
 import { Tarjeta, Chip, SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
@@ -66,11 +67,12 @@ export default async function RegistrosPage({
                   <th className="py-2 pr-3 font-bold">Cantidad</th>
                   <th className="py-2 pr-3 font-bold">Registró</th>
                   <th className="py-2 pr-3 font-bold">Detalle</th>
+                  <th className="py-2 font-bold"></th>
                 </tr>
               </thead>
               <tbody>
                 {registros.map((r, i) => (
-                  <tr key={i} className="border-b border-finca-50 align-top">
+                  <tr key={i} className="border-b border-finca-50 align-top hover:bg-crema">
                     <td className="py-2 pr-3 whitespace-nowrap text-finca-900">
                       {r.fecha}
                       {hora(r.hora) && <span className="block text-xs text-finca-500">{hora(r.hora)}</span>}
@@ -93,6 +95,11 @@ export default async function RegistrosPage({
                       {r.observaciones && <span>{r.observaciones}</span>}
                       {r.tieneFoto && <span className="ml-1">📷</span>}
                       {!r.problema && !r.observaciones && !r.tieneFoto && <span className="text-finca-400">—</span>}
+                    </td>
+                    <td className="py-2 whitespace-nowrap">
+                      <Link href={`/panel/registros/${r.id}`} className="text-finca-600 font-bold underline">
+                        Ver →
+                      </Link>
                     </td>
                   </tr>
                 ))}

@@ -8,6 +8,8 @@ import { panelConfigurado } from "./datos";
  * asistencia diaria. Lee de Supabase en el servidor (service role).
  */
 
+const BUCKET = "capturas";
+
 async function sel(builder: any): Promise<any[]> {
   try {
     const { data, error } = await builder;
@@ -24,6 +26,7 @@ export interface ActividadOpc {
 }
 
 export interface RegistroDetalle {
+  id: string;
   fecha: string;
   hora: string | null;
   area: string;
@@ -94,7 +97,7 @@ export async function obtenerRegistros(
   let q = supa
     .from("registros")
     .select(
-      "fecha,creado_en,area_id,actividad_id,usuario,cantidad,unidad,jornales_usados,observaciones,problema_detectado,descripcion_problema,fotos",
+      "id,fecha,creado_en,area_id,actividad_id,usuario,cantidad,unidad,jornales_usados,observaciones,problema_detectado,descripcion_problema,fotos",
     )
     .gte("fecha", desde)
     .lte("fecha", hasta)
@@ -107,6 +110,7 @@ export async function obtenerRegistros(
   const registros: RegistroDetalle[] = filas.map((r: any) => {
     const a = act.get(r.actividad_id);
     return {
+      id: r.id,
       fecha: r.fecha,
       hora: r.creado_en ?? null,
       area: nombreArea.get(r.area_id) ?? "—",
@@ -209,4 +213,88 @@ export async function obtenerColaboradores(
     diasAsistidos: dias.get(t.id)?.size ?? 0,
   }));
   return { configurado: true, colaboradores };
+}
+
+export interface RegistroCompleto {
+  id: string;
+  fecha: string;
+  creadoEn: string | null;
+  sincronizadoEn: string | null;
+  area: string;
+  actividad: string;
+  usuario: string;
+  cantidad: number | null;
+  unidad: string | null;
+  jornales: number | null;
+  observaciones: string | null;
+  problema: boolean;
+  descripcionProblema: string | null;
+  insumoAgotado: boolean;
+  requiereRevision: boolean;
+  transcripcion: string | null;
+  lat: number | null;
+  lon: number | null;
+  precisionGps: number | null;
+  fotos: string[]; // URLs firmadas
+}
+
+/** Detalle completo de UN registro (para la vista de drill-down del panel). */
+export async function obtenerRegistro(id: string): Promise<{ configurado: boolean; registro: RegistroCompleto | null }> {
+  if (!panelConfigurado()) return { configurado: false, registro: null };
+  const supa = crearClienteServicio();
+
+  let fila: any = null;
+  try {
+    const { data } = await supa.from("registros").select("*").eq("id", id).maybeSingle();
+    fila = data;
+  } catch {
+    fila = null;
+  }
+  if (!fila) return { configurado: true, registro: null };
+
+  const [areas, actividades] = await Promise.all([
+    sel(supa.from("areas").select("id,nombre")),
+    sel(supa.from("actividades").select("id,codigo,nombre,unidad_medida")),
+  ]);
+  const nombreArea = new Map<string, string>(areas.map((a: any) => [a.id, a.nombre]));
+  const act = new Map<string, any>(actividades.map((a: any) => [a.id, a]));
+  const a = act.get(fila.actividad_id);
+
+  // Firmar las fotos (aislado: si falla, mostramos el registro igual).
+  let fotos: string[] = [];
+  const rutas = Array.isArray(fila.fotos) ? (fila.fotos as string[]) : [];
+  if (rutas.length > 0) {
+    try {
+      const { data: firmadas } = await supa.storage.from(BUCKET).createSignedUrls(rutas, 3600);
+      fotos = (firmadas ?? []).map((f: any) => f?.signedUrl).filter(Boolean);
+    } catch {
+      fotos = [];
+    }
+  }
+
+  return {
+    configurado: true,
+    registro: {
+      id: fila.id,
+      fecha: fila.fecha,
+      creadoEn: fila.creado_en ?? null,
+      sincronizadoEn: fila.sincronizado_en ?? null,
+      area: nombreArea.get(fila.area_id) ?? "—",
+      actividad: a?.nombre ?? "actividad",
+      usuario: fila.usuario ?? "—",
+      cantidad: fila.cantidad != null ? Number(fila.cantidad) : null,
+      unidad: a?.unidad_medida ?? fila.unidad ?? null,
+      jornales: fila.jornales_usados != null ? Number(fila.jornales_usados) : null,
+      observaciones: fila.observaciones ?? null,
+      problema: !!fila.problema_detectado,
+      descripcionProblema: fila.descripcion_problema ?? null,
+      insumoAgotado: !!fila.insumo_agotado,
+      requiereRevision: !!fila.requiere_revision,
+      transcripcion: fila.audio_transcripcion ?? null,
+      lat: fila.latitud != null ? Number(fila.latitud) : null,
+      lon: fila.longitud != null ? Number(fila.longitud) : null,
+      precisionGps: fila.precision_gps != null ? Number(fila.precision_gps) : null,
+      fotos,
+    },
+  };
 }

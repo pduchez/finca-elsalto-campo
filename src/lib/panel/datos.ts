@@ -53,6 +53,7 @@ export interface Campana {
   areasFaltan: string[];
 }
 export interface FotoPanel {
+  id: string;
   url: string;
   area: string;
   actividad: string;
@@ -87,6 +88,7 @@ export interface ResumenPanel {
   // Últimos registros del campo (lo que Emerson y todos van cargando), para que
   // el dueño vea la actividad aunque no sea de hoy.
   recientes: {
+    id: string;
     fecha: string;
     area: string;
     actividad: string;
@@ -262,6 +264,7 @@ export async function obtenerResumen(desde: string, hasta: string): Promise<Resu
     // ---- ACTIVIDAD RECIENTE (lo que el campo va cargando) ----
     // `registros` viene ordenado por creado_en desc; mostramos lo último.
     const recientes = (registros as any[]).slice(0, 20).map((r) => ({
+      id: r.id,
       fecha: r.fecha,
       area: nombreArea.get(r.area_id) ?? "—",
       actividad: act.get(r.actividad_id)?.nombre ?? "actividad",
@@ -280,6 +283,7 @@ export async function obtenerResumen(desde: string, hasta: string): Promise<Resu
       try {
         const { data: firmadas } = await supa.storage.from(BUCKET).createSignedUrls(rutas, 3600);
         fotos = conFoto.map((r, i) => ({
+          id: r.id,
           url: firmadas?.[i]?.signedUrl ?? "",
           area: nombreArea.get(r.area_id) ?? "—",
           actividad: act.get(r.actividad_id)?.nombre ?? "—",
