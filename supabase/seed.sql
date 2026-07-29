@@ -11,7 +11,10 @@ insert into areas (id, nombre, activa) values
   ('a1000000-0000-4000-8000-000000000003', 'El Coyol', true),
   ('a1000000-0000-4000-8000-000000000004', 'Paniagua', true),
   ('a1000000-0000-4000-8000-000000000005', 'El Amatón', true),
-  ('a1000000-0000-4000-8000-000000000006', 'El Vivero', true)
+  ('a1000000-0000-4000-8000-000000000006', 'El Vivero', true),
+  ('a1000000-0000-4000-8000-000000000007', 'Los Chapines', true),
+  ('a1000000-0000-4000-8000-000000000008', 'El Quemado', true),
+  ('a1000000-0000-4000-8000-000000000009', 'El Guachipilin', true)
 on conflict (id) do nothing;
 
 -- Actividades
