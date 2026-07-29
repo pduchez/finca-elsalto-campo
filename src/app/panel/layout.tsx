@@ -5,6 +5,8 @@ import ProveedorPanel from "@/components/ProveedorPanel";
 // del director). Presenta la finca de un pantallazo.
 const NAV = [
   { href: "/panel", label: "Resumen" },
+  { href: "/panel/registros", label: "Registros" },
+  { href: "/panel/asistencia", label: "Asistencia" },
   { href: "/panel/cosecha", label: "Cosecha" },
   { href: "/panel/campanas", label: "Campañas" },
   { href: "/panel/fotos", label: "Fotos" },
