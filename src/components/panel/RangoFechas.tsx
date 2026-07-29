@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function iso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -22,10 +22,15 @@ const PRESETS = [
 export default function RangoFechas({ desde, hasta }: { desde: string; hasta: string }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const hoy = iso(new Date());
 
   function ir(d: string, h: string) {
-    router.push(`${pathname}?desde=${d}&hasta=${h}`);
+    // Conservamos otros filtros (p. ej. ?actividad) al cambiar el período.
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("desde", d);
+    params.set("hasta", h);
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   return (
