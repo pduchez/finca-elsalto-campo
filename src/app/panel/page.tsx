@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { obtenerResumen, resolverRango } from "@/lib/panel/datos";
 import { Cifra, Barra, Tarjeta, TituloReporte, SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
 import RangoFechas from "@/components/panel/RangoFechas";
@@ -56,17 +57,25 @@ export default async function ResumenPanel({
         ) : (
           <ul className="flex flex-col divide-y divide-finca-100">
             {r.recientes.map((a, i) => (
-              <li key={i} className="py-2 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-bold text-finca-900 truncate">
-                    {a.area} · <span className="font-semibold text-finca-700">{a.actividad}</span>
-                  </p>
-                  <p className="text-xs text-finca-600">
-                    {a.fecha} · {a.usuario}
-                    {a.cantidad != null && ` · ${a.cantidad}${a.unidad ? ` ${a.unidad}` : ""}`}
-                  </p>
-                </div>
-                {a.problema && <span className="text-alerta text-sm shrink-0">🐛</span>}
+              <li key={i}>
+                <Link
+                  href={`/panel/registros/${a.id}`}
+                  className="py-2 flex items-center justify-between gap-3 hover:bg-crema rounded-lg px-1"
+                >
+                  <div className="min-w-0">
+                    <p className="font-bold text-finca-900 truncate">
+                      {a.area} · <span className="font-semibold text-finca-700">{a.actividad}</span>
+                    </p>
+                    <p className="text-xs text-finca-600">
+                      {a.fecha} · {a.usuario}
+                      {a.cantidad != null && ` · ${a.cantidad}${a.unidad ? ` ${a.unidad}` : ""}`}
+                    </p>
+                  </div>
+                  <span className="flex items-center gap-2 shrink-0">
+                    {a.problema && <span className="text-alerta text-sm">🐛</span>}
+                    <span className="text-finca-500">→</span>
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -164,13 +173,14 @@ export default async function ResumenPanel({
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {r.fotos.slice(0, 8).map((f, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={f.url}
-                alt={`${f.area} · ${f.actividad}`}
-                className="w-full h-24 object-cover rounded-xl border border-finca-100"
-              />
+              <Link key={i} href={`/panel/registros/${f.id}`} className="block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={f.url}
+                  alt={`${f.area} · ${f.actividad}`}
+                  className="w-full h-24 object-cover rounded-xl border border-finca-100 hover:border-finca-300"
+                />
+              </Link>
             ))}
           </div>
         )}

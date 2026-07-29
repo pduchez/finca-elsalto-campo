@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { obtenerResumen, resolverRango } from "@/lib/panel/datos";
 import { SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
 import RangoFechas from "@/components/panel/RangoFechas";
@@ -28,10 +29,14 @@ export default async function FotosPage({
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {fotos.map((f, i) => (
-            <figure key={i} className="bg-white rounded-2xl border border-finca-100 overflow-hidden">
+            <Link
+              href={`/panel/registros/${f.id}`}
+              key={i}
+              className="bg-white rounded-2xl border border-finca-100 overflow-hidden block hover:border-finca-300"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={f.url} alt={`${f.area} · ${f.actividad}`} className="w-full h-44 object-cover" />
-              <figcaption className="p-3">
+              <div className="p-3">
                 <p className="font-bold text-finca-900 text-sm">{f.area}</p>
                 <p className="text-xs text-finca-600">
                   {f.actividad} · {f.fecha}
@@ -40,8 +45,8 @@ export default async function FotosPage({
                   <p className="text-xs text-alerta font-bold mt-1">🐛 {f.nota ?? "Problema reportado"}</p>
                 )}
                 {!f.problema && f.nota && <p className="text-xs text-finca-600 mt-1">{f.nota}</p>}
-              </figcaption>
-            </figure>
+              </div>
+            </Link>
           ))}
         </div>
       )}
