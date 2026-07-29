@@ -20,6 +20,9 @@ export const AREAS: Area[] = [
   { id: "a1000000-0000-4000-8000-000000000004", nombre: "Paniagua", hectareas: null, activa: true },
   { id: "a1000000-0000-4000-8000-000000000005", nombre: "El Amatón", hectareas: null, activa: true },
   { id: "a1000000-0000-4000-8000-000000000006", nombre: "El Vivero", hectareas: null, activa: true },
+  { id: "a1000000-0000-4000-8000-000000000007", nombre: "Los Chapines", hectareas: null, activa: true },
+  { id: "a1000000-0000-4000-8000-000000000008", nombre: "El Quemado", hectareas: null, activa: true },
+  { id: "a1000000-0000-4000-8000-000000000009", nombre: "El Guachipilin", hectareas: null, activa: true },
 ];
 
 export const ACTIVIDADES: Actividad[] = [
@@ -158,6 +161,18 @@ export async function sembrarSiVacio(): Promise<void> {
           await base.protocolos.bulkPut(PROTOCOLOS);
         },
       );
+    } else {
+      // Reconciliar catálogos: si el seed trae áreas/actividades nuevas que aún
+      // no existen en este dispositivo (p. ej. una instalación ya sembrada de
+      // antes), las AGREGAMOS. No tocamos las existentes: nada se pierde ni se
+      // sobrescribe (mismo id = misma área; solo se añaden las que faltan).
+      const idsAreas = new Set((await base.areas.toArray()).map((a) => a.id));
+      const faltanAreas = AREAS.filter((a) => !idsAreas.has(a.id));
+      if (faltanAreas.length > 0) await base.areas.bulkAdd(faltanAreas);
+
+      const idsActs = new Set((await base.actividades.toArray()).map((a) => a.id));
+      const faltanActs = ACTIVIDADES.filter((a) => !idsActs.has(a.id));
+      if (faltanActs.length > 0) await base.actividades.bulkAdd(faltanActs);
     }
     // Plan del día demo (solo si no hay plan para hoy).
     const fecha = hoyISO();
