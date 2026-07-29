@@ -45,6 +45,34 @@ export default async function ResumenPanel({
         )}
       </Tarjeta>
 
+      {/* ------- Actividad reciente del campo ------- */}
+      <Tarjeta>
+        <TituloReporte
+          titulo="Actividad reciente en el campo"
+          sub="Lo último que se registró en el período (aunque no sea de hoy)"
+        />
+        {r.recientes.length === 0 ? (
+          <SinDatos>No hay registros en el período seleccionado.</SinDatos>
+        ) : (
+          <ul className="flex flex-col divide-y divide-finca-100">
+            {r.recientes.map((a, i) => (
+              <li key={i} className="py-2 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-bold text-finca-900 truncate">
+                    {a.area} · <span className="font-semibold text-finca-700">{a.actividad}</span>
+                  </p>
+                  <p className="text-xs text-finca-600">
+                    {a.fecha} · {a.usuario}
+                    {a.cantidad != null && ` · ${a.cantidad}${a.unidad ? ` ${a.unidad}` : ""}`}
+                  </p>
+                </div>
+                {a.problema && <span className="text-alerta text-sm shrink-0">🐛</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Tarjeta>
+
       {/* ------- Campañas en curso ------- */}
       <Tarjeta>
         <TituloReporte

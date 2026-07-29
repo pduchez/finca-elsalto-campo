@@ -84,6 +84,17 @@ export interface ResumenPanel {
     areasSinActividad: { area: string; dias: number | null }[];
   };
   fotos: FotoPanel[];
+  // Últimos registros del campo (lo que Emerson y todos van cargando), para que
+  // el dueño vea la actividad aunque no sea de hoy.
+  recientes: {
+    fecha: string;
+    area: string;
+    actividad: string;
+    usuario: string;
+    cantidad: number | null;
+    unidad: string | null;
+    problema: boolean;
+  }[];
 }
 
 /** Resuelve el rango pedido (o el de por defecto: últimos 30 días). */
@@ -102,6 +113,7 @@ function vacio(desde: string, hasta: string): ResumenPanel {
     cosecha: { totalQq: 0, metaTotalQq: 0, pctTotal: 0, ultimo: null, porArea: [], porSemana: [] },
     alertas: { problemas: [], areasSinActividad: [] },
     fotos: [],
+    recientes: [],
   };
 }
 
@@ -121,7 +133,7 @@ export async function obtenerResumen(desde: string, hasta: string): Promise<Resu
         return [];
       }
     };
-    const CAMPOS = "id,fecha,creado_en,area_id,actividad_id,cantidad,unidad,jornales_usados,problema_detectado,descripcion_problema,observaciones,fotos";
+    const CAMPOS = "id,fecha,creado_en,area_id,actividad_id,usuario,cantidad,unidad,jornales_usados,problema_detectado,descripcion_problema,observaciones,fotos";
 
     // `registros` = los del período elegido (reportes). `regHoy` = siempre hoy.
     const [areas, detalles, actividades, registros, regHoy, asistencia] = await Promise.all([
@@ -247,20 +259,37 @@ export async function obtenerResumen(desde: string, hasta: string): Promise<Resu
       .filter((x) => x.dias === null || x.dias >= 10)
       .sort((a, b) => (b.dias ?? 999) - (a.dias ?? 999));
 
+    // ---- ACTIVIDAD RECIENTE (lo que el campo va cargando) ----
+    // `registros` viene ordenado por creado_en desc; mostramos lo último.
+    const recientes = (registros as any[]).slice(0, 20).map((r) => ({
+      fecha: r.fecha,
+      area: nombreArea.get(r.area_id) ?? "—",
+      actividad: act.get(r.actividad_id)?.nombre ?? "actividad",
+      usuario: r.usuario ?? "—",
+      cantidad: r.cantidad != null ? Number(r.cantidad) : null,
+      unidad: act.get(r.actividad_id)?.unidad ?? r.unidad ?? null,
+      problema: !!r.problema_detectado,
+    }));
+
     // ---- FOTOS (estado de planta) ----
+    // Si el firmado de URLs falla, NO debe tumbar todo el panel: lo aislamos.
     const conFoto = (registros as any[]).filter((r) => Array.isArray(r.fotos) && r.fotos.length > 0).slice(0, 12);
     const rutas = conFoto.map((r) => r.fotos[0] as string);
     let fotos: FotoPanel[] = [];
     if (rutas.length > 0) {
-      const { data: firmadas } = await supa.storage.from(BUCKET).createSignedUrls(rutas, 3600);
-      fotos = conFoto.map((r, i) => ({
-        url: firmadas?.[i]?.signedUrl ?? "",
-        area: nombreArea.get(r.area_id) ?? "—",
-        actividad: act.get(r.actividad_id)?.nombre ?? "—",
-        fecha: r.fecha,
-        nota: r.descripcion_problema ?? r.observaciones ?? null,
-        problema: !!r.problema_detectado,
-      })).filter((f) => f.url);
+      try {
+        const { data: firmadas } = await supa.storage.from(BUCKET).createSignedUrls(rutas, 3600);
+        fotos = conFoto.map((r, i) => ({
+          url: firmadas?.[i]?.signedUrl ?? "",
+          area: nombreArea.get(r.area_id) ?? "—",
+          actividad: act.get(r.actividad_id)?.nombre ?? "—",
+          fecha: r.fecha,
+          nota: r.descripcion_problema ?? r.observaciones ?? null,
+          problema: !!r.problema_detectado,
+        })).filter((f) => f.url);
+      } catch {
+        fotos = [];
+      }
     }
 
     return {
@@ -286,6 +315,7 @@ export async function obtenerResumen(desde: string, hasta: string): Promise<Resu
       },
       alertas: { problemas, areasSinActividad },
       fotos,
+      recientes,
     };
   } catch {
     return { ...vacio(desde, hasta), configurado: true };
