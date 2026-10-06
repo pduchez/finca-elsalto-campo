@@ -1,0 +1,45 @@
+name: Verificar latido
+
+# Comprueba que /api/latido responde en producción (toca la base real).
+# Útil como chequeo de salud manual: si da 200, la base está viva.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "URL del latido en producción"
+        required: false
+        default: "https://finca-elsalto-campo.vercel.app/api/latido"
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GET /api/latido
+        env:
+          URL: ${{ github.event.inputs.url }}
+          # Opcional: si en Vercel existe CRON_SECRET, guardalo como secret
+          # CRON_SECRET en el repo y se manda como Bearer.
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          U="${URL:-https://finca-elsalto-campo.vercel.app/api/latido}"
+          echo "GET $U"
+          if [ -n "$CRON_SECRET" ]; then
+            code=$(curl -s -o /tmp/body.txt -w "%{http_code}" -m 30 -H "Authorization: Bearer $CRON_SECRET" "$U")
+          else
+            code=$(curl -s -o /tmp/body.txt -w "%{http_code}" -m 30 "$U")
+          fi
+          echo "HTTP $code"
+          echo "body: $(cat /tmp/body.txt)"
+          if [ "$code" = "200" ] && grep -q '"ok":true' /tmp/body.txt; then
+            echo "✅ Latido OK: la base respondió."
+          elif [ "$code" = "503" ]; then
+            echo "::error::503 — la base está CAÍDA o PAUSADA ahora mismo. Si Supabase está pausado, hay que reactivarlo una vez desde el panel de Supabase; el latido diario evita que se vuelva a pausar, pero no despierta una base ya pausada."
+            exit 1
+          elif [ "$code" = "401" ]; then
+            echo "::error::401 — la ruta exige CRON_SECRET. Guardá el secreto como 'CRON_SECRET' en los secrets del repo y volvé a correr."
+            exit 1
+          else
+            echo "::error::Respuesta inesperada ($code)."
+            exit 1
+          fi
