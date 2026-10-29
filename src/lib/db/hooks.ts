@@ -2,6 +2,7 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "./index";
+import type { CorteLocal, PesajeLocal } from "./index";
 import { hoyISO } from "./seed";
 
 /** Catálogos cacheados (reactivos). */
@@ -152,4 +153,108 @@ export function useRegistrosHoy() {
     [],
     [],
   );
+}
+
+// ===================== COSECHA (corte → secado → pergamino) =====================
+
+function neto(p: { bruto_lb: number | null; tara_lb: number | null }): number {
+  return Math.max(0, (p.bruto_lb ?? 0) - (p.tara_lb ?? 0));
+}
+
+/** Cortes recientes (más nuevo primero). */
+export function useCortes(limite = 50) {
+  return useLiveQuery(
+    async () => {
+      const cs = await db().cosecha_cortes.orderBy("creado_en").reverse().limit(limite).toArray();
+      return cs;
+    },
+    [limite],
+    [],
+  );
+}
+
+/** Cortes todavía NO asignados a un lote (verde disponible para secar). */
+export function useCortesDisponibles() {
+  return useLiveQuery(
+    async () => {
+      const cs = await db().cosecha_cortes.toArray();
+      return cs.filter((c) => !c.lote_id).sort((a, b) => b.creado_en - a.creado_en);
+    },
+    [],
+    [],
+  );
+}
+
+/** Pesadas de un corte (verde). */
+export function usePesajesDeCorte(corteId: string | null) {
+  return useLiveQuery(
+    async () => {
+      if (!corteId) return [] as PesajeLocal[];
+      return db().cosecha_pesajes.where("corte_id").equals(corteId).toArray();
+    },
+    [corteId],
+    [] as PesajeLocal[],
+  );
+}
+
+/** Libras netas (verde) de un corte. */
+export function useVerdeDeCorte(corteId: string | null): number {
+  const pes = usePesajesDeCorte(corteId);
+  return (pes ?? []).reduce((s, p) => s + neto(p), 0);
+}
+
+/** Lotes de secado (más nuevo primero). */
+export function useLotes(limite = 50) {
+  return useLiveQuery(
+    () => db().cosecha_lotes.orderBy("creado_en").reverse().limit(limite).toArray(),
+    [limite],
+    [],
+  );
+}
+
+export function useLote(loteId: string | null) {
+  return useLiveQuery(() => (loteId ? db().cosecha_lotes.get(loteId) : undefined), [loteId], undefined);
+}
+
+/** Cortes que entraron a un lote. */
+export function useCortesDeLote(loteId: string | null) {
+  return useLiveQuery(
+    async () => {
+      if (!loteId) return [] as CorteLocal[];
+      return db().cosecha_cortes.where("lote_id").equals(loteId).toArray();
+    },
+    [loteId],
+    [] as CorteLocal[],
+  );
+}
+
+/** Pesadas de pergamino (salida) de un lote. */
+export function usePergaminoDeLote(loteId: string | null) {
+  return useLiveQuery(
+    async () => {
+      if (!loteId) return [] as PesajeLocal[];
+      return db().cosecha_pesajes.where("lote_id").equals(loteId).toArray();
+    },
+    [loteId],
+    [] as PesajeLocal[],
+  );
+}
+
+/** Verde total (lb) que entró a un lote = suma del verde de sus cortes. */
+export function useVerdeDeLote(loteId: string | null): number {
+  const n = useLiveQuery(
+    async () => {
+      if (!loteId) return 0;
+      const cortes = await db().cosecha_cortes.where("lote_id").equals(loteId).toArray();
+      let total = 0;
+      for (const c of cortes) {
+        const pes = await db().cosecha_pesajes.where("corte_id").equals(c.id).toArray();
+        total += pes.reduce((s, p) => s + neto(p), 0);
+      }
+      return total;
+    },
+    [loteId],
+    0,
+  );
+  return n ?? 0;
 }

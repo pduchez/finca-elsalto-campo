@@ -1,6 +1,8 @@
 import { obtenerResumen, resolverRango } from "@/lib/panel/datos";
+import { obtenerCosecha } from "@/lib/panel/cosecha";
 import { Cifra, Barra, Tarjeta, TituloReporte, SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
 import IngresoEstimado from "@/components/panel/IngresoEstimado";
+import CostosCosecha from "@/components/panel/CostosCosecha";
 import RangoFechas from "@/components/panel/RangoFechas";
 
 export const dynamic = "force-dynamic";
@@ -11,19 +13,107 @@ export default async function CosechaPage({
   searchParams?: { desde?: string; hasta?: string };
 }) {
   const { desde, hasta } = resolverRango(searchParams);
-  const { configurado, cosecha, rango } = await obtenerResumen(desde, hasta);
+  const [{ configurado, cosecha, rango }, c] = await Promise.all([
+    obtenerResumen(desde, hasta),
+    obtenerCosecha(desde, hasta),
+  ]);
   const maxSemana = Math.max(1, ...cosecha.porSemana.map((s) => s.qq));
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-extrabold text-finca-900">Cosecha</h1>
-        <p className="text-finca-600">Quintales de cardamomo cortados</p>
+        <p className="text-finca-600">Corte en verde → secado → pergamino (libras)</p>
       </div>
 
       <RangoFechas desde={rango.desde} hasta={rango.hasta} />
 
       {!configurado && <AvisoSinConexion />}
+
+      {/* ===== Cosecha en libras (verde → pergamino) ===== */}
+      <div className="grid grid-cols-3 gap-3">
+        <Cifra valor={`${c.verdeTotalLb} lb`} etiqueta="Verde cortado" destacado />
+        <Cifra valor={`${c.pergaminoTotalLb} lb`} etiqueta="Pergamino" />
+        <Cifra valor={c.rendimientoPct != null ? `${c.rendimientoPct}%` : "—"} etiqueta="Rendimiento" />
+      </div>
+
+      <CostosCosecha
+        pergaminoLb={c.pergaminoTotalLb}
+        propanoTotal={c.propanoTotal}
+        combustibleTotal={c.combustibleTotal}
+        horasHombreTotal={c.horasHombreTotal}
+      />
+
+      {c.revisiones > 0 && (
+        <div className="rounded-xl bg-pendiente/10 border border-pendiente/30 text-pendiente px-4 py-2 text-sm font-semibold">
+          {c.revisiones} {c.revisiones === 1 ? "pesaje necesita" : "pesajes necesitan"} revisión (Claude no leyó bien la foto de la báscula).
+        </div>
+      )}
+
+      {/* Verde por área */}
+      <Tarjeta>
+        <TituloReporte titulo="Verde por área" sub="Libras cortadas en el período" />
+        {c.porArea.length === 0 ? (
+          <SinDatos>Aún no hay cortes registrados en el período.</SinDatos>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {c.porArea.map((a) => (
+              <div key={a.area} className="flex items-baseline justify-between border-b border-finca-50 py-1">
+                <span className="font-bold text-finca-900">{a.area}</span>
+                <span className="text-finca-700 font-extrabold">{a.verdeLb} lb</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Tarjeta>
+
+      {/* Lotes de secado */}
+      <Tarjeta>
+        <TituloReporte titulo="Lotes de secado" sub="Verde que entró, pergamino que salió y recursos usados" />
+        {c.lotes.length === 0 ? (
+          <SinDatos>No hay lotes de secado en el período.</SinDatos>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-finca-600 border-b border-finca-100">
+                  <th className="py-2 pr-3 font-bold">Lote</th>
+                  <th className="py-2 pr-3 font-bold">Verde</th>
+                  <th className="py-2 pr-3 font-bold">Pergamino</th>
+                  <th className="py-2 pr-3 font-bold">Rend.</th>
+                  <th className="py-2 pr-3 font-bold">Horas</th>
+                  <th className="py-2 pr-3 font-bold">Propano</th>
+                  <th className="py-2 pr-3 font-bold">Comb.</th>
+                  <th className="py-2 font-bold">H-H</th>
+                </tr>
+              </thead>
+              <tbody>
+                {c.lotes.map((l) => (
+                  <tr key={l.id} className="border-b border-finca-50">
+                    <td className="py-2 pr-3 whitespace-nowrap text-finca-900">
+                      {l.fecha_inicio}
+                      {!l.fecha_fin && <span className="block text-xs text-pendiente">abierto</span>}
+                    </td>
+                    <td className="py-2 pr-3 text-finca-900">{l.verdeLb} lb</td>
+                    <td className="py-2 pr-3 font-bold text-finca-900">{l.pergaminoLb} lb</td>
+                    <td className="py-2 pr-3">{l.rendimientoPct != null ? `${l.rendimientoPct}%` : "—"}</td>
+                    <td className="py-2 pr-3">{l.horas_secado ?? "—"}</td>
+                    <td className="py-2 pr-3">{l.propano_cantidad != null ? `${l.propano_cantidad} ${l.propano_unidad ?? ""}` : "—"}</td>
+                    <td className="py-2 pr-3">{l.combustible_cantidad != null ? `${l.combustible_cantidad} ${l.combustible_unidad ?? ""}` : "—"}</td>
+                    <td className="py-2">{l.horas_hombre ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Tarjeta>
+
+      {/* ===== Histórico: cortes por voz (quintales) ===== */}
+      <div className="pt-2">
+        <h2 className="text-lg font-extrabold text-finca-900">Histórico de cortes por voz (quintales)</h2>
+        <p className="text-finca-600 text-sm">Registros de la actividad «corte» capturados por audio.</p>
+      </div>
 
       <div className="grid grid-cols-3 gap-3">
         <Cifra valor={`${cosecha.totalQq} qq`} etiqueta="Cortado" destacado />
