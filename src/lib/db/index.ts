@@ -145,6 +145,63 @@ export interface TrabajadorLocal extends Trabajador {
   sincronizado_en?: number | null;
 }
 
+/** Lote de secado (deshidratación controlada): verde → pergamino. */
+export interface LoteSecadoLocal {
+  id: string;
+  fecha_inicio: string; // YYYY-MM-DD
+  fecha_fin?: string | null;
+  horas_secado: number | null;
+  propano_cantidad: number | null;
+  propano_unidad: string;
+  combustible_cantidad: number | null;
+  combustible_unidad: string;
+  horas_hombre: number | null;
+  notas?: string | null;
+  usuario: string;
+  creado_en: number;
+  estadoSync: EstadoSync;
+  intentos: number;
+  ultimo_intento_en?: number | null;
+  sincronizado_en?: number | null;
+}
+
+/** Corte en verde (cereza) por área. El total = suma de sus pesajes. */
+export interface CorteLocal {
+  id: string;
+  fecha: string;
+  area_id: string | null;
+  area_nombre?: string | null; // desnormalizado para mostrar offline
+  usuario: string;
+  lote_id?: string | null; // a qué lote de secado entró
+  notas?: string | null;
+  creado_en: number;
+  estadoSync: EstadoSync;
+  intentos: number;
+  ultimo_intento_en?: number | null;
+  sincronizado_en?: number | null;
+}
+
+/** Pesada: del verde (de un corte) o del pergamino (salida de un lote). */
+export interface PesajeLocal {
+  id: string;
+  destino: "verde" | "pergamino";
+  corte_id?: string | null;
+  lote_id?: string | null;
+  bruto_lb: number | null; // puede ir null: lo lee Claude de la foto de la báscula
+  tara_lb: number | null;
+  hora: number | null; // epoch ms
+  fotoBlob?: Blob | null; // foto de la báscula (local hasta subir a Storage)
+  leido_por?: "manual" | "claude";
+  confianza?: number | null;
+  requiere_revision?: boolean;
+  creado_en: number;
+  estadoSync: EstadoSync;
+  intentos: number;
+  ultimo_intento_en?: number | null;
+  sincronizado_en?: number | null;
+  archivosSubidos?: boolean; // foto ya subida a Storage
+}
+
 class FincaDB extends Dexie {
   registros!: Table<RegistroLocal, string>;
   asistencia!: Table<AsistenciaLocal, string>;
@@ -153,6 +210,10 @@ class FincaDB extends Dexie {
   protocolos!: Table<ProtocoloLocal, string>;
   consultas_protocolo!: Table<ConsultaProtocoloLocal, string>;
   area_detalle!: Table<AreaDetalleLocal, string>;
+  // Cosecha (Fase 1+2)
+  cosecha_cortes!: Table<CorteLocal, string>;
+  cosecha_lotes!: Table<LoteSecadoLocal, string>;
+  cosecha_pesajes!: Table<PesajeLocal, string>;
   // Catálogos cacheados (para funcionar sin señal)
   areas!: Table<Area, string>;
   actividades!: Table<Actividad, string>;
@@ -182,6 +243,12 @@ class FincaDB extends Dexie {
     this.version(3).stores({
       trabajadores: "id, nombre, estadoSync",
     });
+    // v4: módulo de cosecha (corte en verde → secado → pergamino).
+    this.version(4).stores({
+      cosecha_cortes: "id, estadoSync, fecha, area_id, lote_id",
+      cosecha_lotes: "id, estadoSync, fecha_inicio",
+      cosecha_pesajes: "id, estadoSync, corte_id, lote_id, destino",
+    });
   }
 }
 
@@ -203,5 +270,8 @@ export const TABLAS_SYNC = [
   "consultas_protocolo",
   "area_detalle",
   "trabajadores",
+  "cosecha_lotes",
+  "cosecha_cortes",
+  "cosecha_pesajes",
 ] as const;
 export type TablaSync = (typeof TABLAS_SYNC)[number];

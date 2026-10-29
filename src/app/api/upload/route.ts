@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
   const tabla = String(form.get("tabla") ?? "");
   const id = String(form.get("id") ?? "");
-  const tablasOk = new Set(["registros", "asistencia", "areas_detalle"]);
+  const tablasOk = new Set(["registros", "asistencia", "areas_detalle", "cosecha_pesajes"]);
   if (!tablasOk.has(tabla) || !id) {
     return NextResponse.json({ ok: false, error: "tabla o id inválidos" }, { status: 400 });
   }
@@ -152,6 +152,44 @@ export async function POST(req: Request) {
           .from("areas_detalle")
           .update({ fotos: fotoRutas, num_fotos: fotoRutas.length })
           .eq("area_id", id);
+        if (error) throw error;
+      }
+    } else if (tabla === "cosecha_pesajes") {
+      const patch: Record<string, unknown> = {};
+      if (fotoRutas.length) patch.foto = fotoRutas[0];
+
+      // Si el peso NO se tecleó (bruto_lb null), Claude lo lee de la foto.
+      if (fotoRutas.length && process.env.ANTHROPIC_API_KEY) {
+        const { data: fila } = await supa
+          .from("cosecha_pesajes")
+          .select("bruto_lb, tara_lb")
+          .eq("id", id)
+          .maybeSingle();
+        if (fila && (fila.bruto_lb === null || fila.bruto_lb === undefined)) {
+          try {
+            const { leerPesoDeFoto } = await import("@/lib/anthropic/leerPeso");
+            const lect = await leerPesoDeFoto(fotos[0]);
+            const dudoso = !lect.legible || lect.confianza < 0.7 ||
+              (lect.unidad_detectada != null && lect.unidad_detectada.toLowerCase() !== "lb");
+            patch.bruto_lb = lect.legible ? lect.peso : null;
+            patch.leido_por = "claude";
+            patch.confianza = lect.confianza;
+            patch.requiere_revision = dudoso;
+            derivados = {
+              bruto_lb: patch.bruto_lb,
+              leido_por: "claude",
+              confianza: lect.confianza,
+              requiere_revision: dudoso,
+            };
+          } catch {
+            patch.requiere_revision = true;
+            derivados = { requiere_revision: true };
+          }
+        }
+      }
+
+      if (Object.keys(patch).length) {
+        const { error } = await supa.from("cosecha_pesajes").update(patch).eq("id", id);
         if (error) throw error;
       }
     }

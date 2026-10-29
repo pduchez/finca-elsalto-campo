@@ -49,6 +49,10 @@ export default function CampoHome() {
         🎤 REGISTRAR
       </BotonGrande>
 
+      <BotonGrande href="/campo/cosecha" variante="listo" className="text-2xl py-7">
+        🌿 COSECHA
+      </BotonGrande>
+
       <div className="grid grid-cols-1 gap-4">
         <BotonGrande href="/campo/areas" variante="secundario">
           🗺️ Áreas

@@ -120,6 +120,52 @@ function aFila(tipo: string, item: any): { tabla: string; fila: any } {
           actualizado_en: new Date().toISOString(),
         },
       };
+    case "cosecha_lotes":
+      return {
+        tabla: "cosecha_lotes",
+        fila: {
+          id: item.id,
+          fecha_inicio: item.fecha_inicio,
+          fecha_fin: item.fecha_fin ?? null,
+          horas_secado: item.horas_secado ?? null,
+          propano_cantidad: item.propano_cantidad ?? null,
+          propano_unidad: item.propano_unidad ?? "libras",
+          combustible_cantidad: item.combustible_cantidad ?? null,
+          combustible_unidad: item.combustible_unidad ?? "galones",
+          horas_hombre: item.horas_hombre ?? null,
+          notas: item.notas ?? null,
+          usuario: item.usuario ?? "emerson",
+        },
+      };
+    case "cosecha_cortes":
+      return {
+        tabla: "cosecha_cortes",
+        fila: {
+          id: item.id,
+          fecha: item.fecha,
+          area_id: item.area_id ?? null,
+          usuario: item.usuario ?? "emerson",
+          lote_id: item.lote_id ?? null,
+          notas: item.notas ?? null,
+        },
+      };
+    case "cosecha_pesajes":
+      return {
+        tabla: "cosecha_pesajes",
+        fila: {
+          id: item.id,
+          destino: item.destino,
+          corte_id: item.corte_id ?? null,
+          lote_id: item.lote_id ?? null,
+          bruto_lb: item.bruto_lb ?? null,
+          tara_lb: item.tara_lb ?? 0,
+          // neto_lb es columna generada: NO se envía.
+          hora: item.hora ? new Date(item.hora).toISOString() : null,
+          leido_por: item.leido_por ?? "manual",
+          confianza: item.confianza ?? null,
+          requiere_revision: !!item.requiere_revision,
+        },
+      };
     default:
       throw new Error(`tipo desconocido: ${tipo}`);
   }

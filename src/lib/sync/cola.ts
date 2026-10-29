@@ -50,6 +50,11 @@ function aPayload(tabla: TablaSync, item: any) {
     const { fotos, ...resto } = item;
     return { ...resto, id: item.area_id, num_fotos: Array.isArray(fotos) ? fotos.length : 0 };
   }
+  if (tabla === "cosecha_pesajes") {
+    // La foto de la báscula es Blob local: se sube aparte (y Claude la lee).
+    const { fotoBlob, ...resto } = item;
+    return { ...resto, tiene_foto: !!fotoBlob };
+  }
   return item;
 }
 
@@ -59,7 +64,7 @@ function aPayload(tabla: TablaSync, item: any) {
  * `archivosSubidos` local solo tras confirmación, y nunca borra los Blob.
  */
 async function subirUno(
-  tabla: "registros" | "asistencia" | "area_detalle",
+  tabla: "registros" | "asistencia" | "area_detalle" | "cosecha_pesajes",
   id: string,
   opts: { audio?: Blob | null; fotos: Blob[]; meta?: Record<string, string | null | undefined> },
 ): Promise<{ ok: boolean; derivados?: Record<string, unknown> | null }> {
@@ -133,6 +138,25 @@ export async function subirArchivos(): Promise<number> {
     }
     if ((await subirUno("area_detalle", d.area_id, { fotos })).ok) {
       await base.area_detalle.update(d.area_id, { archivosSubidos: true });
+      subidos++;
+    }
+  }
+
+  // Pesajes de cosecha: sube la foto de la báscula; el servidor, si el peso
+  // vino vacío, lo lee con Claude y lo devuelve en `derivados` para mostrarlo.
+  const pes = await base.cosecha_pesajes.where("estadoSync").equals("sincronizado").toArray();
+  for (const p of pes) {
+    if (p.archivosSubidos) continue;
+    if (!p.fotoBlob) {
+      await base.cosecha_pesajes.update(p.id, { archivosSubidos: true });
+      continue;
+    }
+    const res = await subirUno("cosecha_pesajes", p.id, { fotos: [p.fotoBlob] });
+    if (res.ok) {
+      await base.cosecha_pesajes.update(p.id, {
+        archivosSubidos: true,
+        ...(res.derivados ?? {}),
+      });
       subidos++;
     }
   }
