@@ -2,7 +2,7 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "./index";
-import type { CorteLocal, PesajeLocal } from "./index";
+import type { CorteLocal, PesajeLocal, LoteSecadoLocal } from "./index";
 import { hoyISO } from "./seed";
 
 /** Catálogos cacheados (reactivos). */
@@ -165,11 +165,12 @@ function neto(p: { bruto_lb: number | null; tara_lb: number | null }): number {
 export function useCortes(limite = 50) {
   return useLiveQuery(
     async () => {
-      const cs = await db().cosecha_cortes.orderBy("creado_en").reverse().limit(limite).toArray();
-      return cs;
+      // `creado_en` no es índice: ordenamos en memoria (no uses orderBy aquí).
+      const cs = await db().cosecha_cortes.toArray();
+      return cs.sort((a, b) => b.creado_en - a.creado_en).slice(0, limite);
     },
     [limite],
-    [],
+    [] as CorteLocal[],
   );
 }
 
@@ -206,9 +207,13 @@ export function useVerdeDeCorte(corteId: string | null): number {
 /** Lotes de secado (más nuevo primero). */
 export function useLotes(limite = 50) {
   return useLiveQuery(
-    () => db().cosecha_lotes.orderBy("creado_en").reverse().limit(limite).toArray(),
+    async () => {
+      // `creado_en` no es índice: ordenamos en memoria (no uses orderBy aquí).
+      const ls = await db().cosecha_lotes.toArray();
+      return ls.sort((a, b) => b.creado_en - a.creado_en).slice(0, limite);
+    },
     [limite],
-    [],
+    [] as LoteSecadoLocal[],
   );
 }
 
