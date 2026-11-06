@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { obtenerResumen, resolverRango } from "@/lib/panel/datos";
+import { obtenerCosecha } from "@/lib/panel/cosecha";
 import { Cifra, Barra, Tarjeta, TituloReporte, SinDatos, AvisoSinConexion } from "@/components/panel/piezas";
 import RangoFechas from "@/components/panel/RangoFechas";
 
@@ -11,7 +12,7 @@ export default async function ResumenPanel({
   searchParams?: { desde?: string; hasta?: string };
 }) {
   const { desde, hasta } = resolverRango(searchParams);
-  const r = await obtenerResumen(desde, hasta);
+  const [r, cos] = await Promise.all([obtenerResumen(desde, hasta), obtenerCosecha(desde, hasta)]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -114,26 +115,29 @@ export default async function ResumenPanel({
         )}
       </Tarjeta>
 
-      {/* ------- Cosecha ------- */}
+      {/* ------- Cosecha (libras: verde → pergamino) ------- */}
       <Tarjeta>
         <TituloReporte
           titulo="Cosecha"
-          sub="Quintales cortados (de aquí vienen los ingresos)"
+          sub="Libras cortadas en verde y pergamino obtenido (de aquí vienen los ingresos)"
           verMas={{ href: "/panel/cosecha", texto: "Ver detalle" }}
         />
         <div className="grid grid-cols-3 gap-3">
-          <Cifra valor={`${r.cosecha.totalQq} qq`} etiqueta="Cortado" destacado />
-          <Cifra valor={r.cosecha.metaTotalQq ? `${r.cosecha.metaTotalQq} qq` : "—"} etiqueta="Meta total" />
-          <Cifra valor={r.cosecha.metaTotalQq ? `${r.cosecha.pctTotal}%` : "—"} etiqueta="De la meta" />
+          <Cifra valor={`${cos.verdeTotalLb} lb`} etiqueta="Verde cortado" destacado />
+          <Cifra valor={`${cos.pergaminoTotalLb} lb`} etiqueta="Pergamino" />
+          <Cifra valor={cos.rendimientoPct != null ? `${cos.rendimientoPct}%` : "—"} etiqueta="Rendimiento" />
         </div>
-        {r.cosecha.metaTotalQq > 0 && (
-          <div className="mt-3">
-            <Barra pct={r.cosecha.pctTotal} tono="cosecha" />
-          </div>
-        )}
-        {r.cosecha.ultimo && (
+        {cos.cortesLista.length > 0 ? (
           <p className="text-sm text-finca-600 mt-3">
-            Último corte: <b>{r.cosecha.ultimo.qq} qq</b> en {r.cosecha.ultimo.area} ({r.cosecha.ultimo.fecha})
+            {cos.cortes} {cos.cortes === 1 ? "corte" : "cortes"} en el período · último:{" "}
+            <b>{cos.cortesLista[0].verdeLb} lb</b> en {cos.cortesLista[0].area} ({cos.cortesLista[0].fecha})
+          </p>
+        ) : (
+          <p className="text-sm text-finca-500 mt-3">Aún no hay cortes registrados en el período.</p>
+        )}
+        {r.cosecha.totalQq > 0 && (
+          <p className="text-xs text-finca-500 mt-1">
+            Además: {r.cosecha.totalQq} qq registrados por voz (sistema anterior).
           </p>
         )}
       </Tarjeta>

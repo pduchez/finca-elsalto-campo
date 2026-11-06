@@ -11,7 +11,7 @@ import {
   useVerdeDeLote,
   useVerdeDeCorte,
 } from "@/lib/db/hooks";
-import { crearLote, actualizarLote, asignarCorteALote, agregarPesaje, netoLb } from "@/lib/cosecha";
+import { crearLote, actualizarLote, asignarCorteALote, agregarPesaje, netoLb, hoyISO } from "@/lib/cosecha";
 import type { CorteLocal } from "@/lib/db";
 import NuevaPesada from "@/components/cosecha/NuevaPesada";
 
@@ -177,7 +177,7 @@ function Editor({ loteId }: { loteId: string }) {
       {!lote?.fecha_fin && (
         <button
           type="button"
-          onClick={() => actualizarLote(loteId, { fecha_fin: new Date().toISOString().slice(0, 10) })}
+          onClick={() => actualizarLote(loteId, { fecha_fin: hoyISO() })}
           className="boton-listo"
         >
           ✓ Cerrar lote
