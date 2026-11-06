@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import BotonGrande from "@/components/BotonGrande";
-import { useCortes, useLotes } from "@/lib/db/hooks";
+import { useCortes, useLotes, useVerdeDeCorte } from "@/lib/db/hooks";
+import type { CorteLocal } from "@/lib/db";
 
 const ESTADOS: Record<string, string> = {
   pendiente: "Guardado aquí",
@@ -10,6 +11,12 @@ const ESTADOS: Record<string, string> = {
   sincronizando: "Enviando…",
   sincronizado: "✓ Enviado",
 };
+
+/** Libras de un corte (hook propio por fila). */
+function LbCorte({ corte }: { corte: CorteLocal }) {
+  const lb = useVerdeDeCorte(corte.id);
+  return <span className="font-extrabold text-finca-900 whitespace-nowrap">{Math.round(lb * 100) / 100} lb</span>;
+}
 
 /** Hub de cosecha: corte en verde y secado (pergamino). */
 export default function CosechaHome() {
@@ -22,6 +29,10 @@ export default function CosechaHome() {
         <h1 className="text-2xl font-extrabold text-finca-900">Cosecha</h1>
         <p className="text-finca-600">Corte en verde y secado a pergamino</p>
       </div>
+
+      <BotonGrande href="/campo/cosecha/resultados" variante="listo" className="text-2xl py-7">
+        📊 VER RESULTADOS
+      </BotonGrande>
 
       <BotonGrande href="/campo/cosecha/corte" className="text-2xl py-8">
         🌿 REGISTRAR CORTE
@@ -39,8 +50,11 @@ export default function CosechaHome() {
                 <span className="font-semibold text-finca-800">
                   {c.area_nombre ?? "—"} · {c.fecha}
                   {c.lote_id ? " · en secado" : ""}
+                  <span className="block text-xs font-normal text-finca-600">
+                    {ESTADOS[c.estadoSync] ?? c.estadoSync}
+                  </span>
                 </span>
-                <span className="text-sm text-finca-600">{ESTADOS[c.estadoSync] ?? c.estadoSync}</span>
+                <LbCorte corte={c} />
               </li>
             ))}
           </ul>

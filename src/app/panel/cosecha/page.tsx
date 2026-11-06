@@ -67,6 +67,41 @@ export default async function CosechaPage({
         )}
       </Tarjeta>
 
+      {/* Cada corte con su resultado */}
+      <Tarjeta>
+        <TituloReporte titulo="Cortes registrados" sub="Resultado de cada corte en verde (libras netas)" />
+        {c.cortesLista.length === 0 ? (
+          <SinDatos>No hay cortes en el período.</SinDatos>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-finca-600 border-b border-finca-100">
+                  <th className="py-2 pr-3 font-bold">Fecha</th>
+                  <th className="py-2 pr-3 font-bold">Área</th>
+                  <th className="py-2 pr-3 font-bold">Verde</th>
+                  <th className="py-2 pr-3 font-bold">Pesadas</th>
+                  <th className="py-2 pr-3 font-bold">Registró</th>
+                  <th className="py-2 font-bold">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {c.cortesLista.map((k) => (
+                  <tr key={k.id} className="border-b border-finca-50">
+                    <td className="py-2 pr-3 whitespace-nowrap text-finca-900">{k.fecha}</td>
+                    <td className="py-2 pr-3 font-semibold text-finca-900">{k.area}</td>
+                    <td className="py-2 pr-3 font-extrabold text-finca-900 whitespace-nowrap">{k.verdeLb} lb</td>
+                    <td className="py-2 pr-3">{k.pesadas}</td>
+                    <td className="py-2 pr-3 capitalize text-finca-700">{k.usuario}</td>
+                    <td className="py-2 text-finca-700 whitespace-nowrap">{k.enLote ? "En secado" : "Por secar"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Tarjeta>
+
       {/* Lotes de secado */}
       <Tarjeta>
         <TituloReporte titulo="Lotes de secado" sub="Verde que entró, pergamino que salió y recursos usados" />

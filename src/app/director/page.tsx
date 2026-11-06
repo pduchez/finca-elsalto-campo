@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic"; // depende de la cookie de sesión
 /**
  * Pantalla de inicio para Directores: dos accesos grandes.
  * 1) App de campo (lo que usa Emerson).
- * 2) Sección de directores (panel, en construcción).
+ * 2) Sección de directores (panel de reportes).
+ * 3) Acceso directo a los resultados de cosecha.
  */
 export default async function DirectorHub() {
   const s = await sesionActual();
@@ -46,13 +47,19 @@ export default async function DirectorHub() {
           >
             <span className="text-4xl">📊</span>
             <span>
-              <span className="flex items-center gap-2">
-                <span className="text-xl font-extrabold text-white">Sección de directores</span>
-                <span className="text-[0.7rem] font-bold uppercase bg-white/25 text-white rounded-full px-2 py-0.5">
-                  En construcción
-                </span>
-              </span>
+              <span className="block text-xl font-extrabold text-white">Sección de directores</span>
               <span className="block text-white/90">Reportes y seguimiento de la finca</span>
+            </span>
+          </Link>
+
+          <Link
+            href="/panel/cosecha"
+            className="bg-white rounded-2xl p-6 flex items-center gap-4 shadow-lg active:scale-[0.98] transition-transform"
+          >
+            <span className="text-4xl">🌿</span>
+            <span>
+              <span className="block text-xl font-extrabold text-finca-900">Ver cosecha</span>
+              <span className="block text-finca-600">Libras en verde, pergamino, rendimiento y cada corte</span>
             </span>
           </Link>
         </div>

@@ -5,8 +5,10 @@ import type { CorteLocal, LoteSecadoLocal, PesajeLocal } from "./db";
 
 /** Helpers de cosecha: escriben en la base local (offline-first). */
 
-function hoyISO(): string {
-  return new Date().toISOString().slice(0, 10);
+/** Fecha local del teléfono (no UTC): un corte de las 7 p.m. queda en el día correcto. */
+export function hoyISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 function uuid(): string {
   return typeof crypto !== "undefined" && crypto.randomUUID
